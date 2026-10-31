@@ -17,7 +17,7 @@ class StockMovement
     private ?string $reason = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $reasonte = null;
+    private ?string $note = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -51,12 +51,12 @@ class StockMovement
 
     public function getNote(): ?string
     {
-        return $this->reasonte;
+        return $this->note;
     }
 
-    public function setNote(?string $reasonte): static
+    public function setNote(?string $note): static
     {
-        $this->reasonte = $reasonte;
+        $this->note = $note;
 
         return $this;
     }
