@@ -16,28 +16,19 @@ class InquiryRepository extends ServiceEntityRepository
         parent::__construct($registry, Inquiry::class);
     }
 
-//    /**
-//     * @return Inquiry[] Returns an array of Inquiry objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('i')
-//            ->andWhere('i.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('i.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function countUnresolved(): int
+    {
+        return (int) $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->andWhere('i.status <> :resolved')
+            ->setParameter('resolved', Inquiry::STATUS_RESOLVED)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 
-//    public function findOneBySomeField($value): ?Inquiry
-//    {
-//        return $this->createQueryBuilder('i')
-//            ->andWhere('i.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /** @return Inquiry[] Newest first */
+    public function findByStatus(string $status): array
+    {
+        return $this->findBy(['status' => $status], ['createdAt' => 'DESC', 'id' => 'DESC']);
+    }
 }
