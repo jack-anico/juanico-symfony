@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\CartItem;
+use App\Entity\Product;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +18,22 @@ class CartItemRepository extends ServiceEntityRepository
         parent::__construct($registry, CartItem::class);
     }
 
-//    /**
-//     * @return CartItem[] Returns an array of CartItem objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('c.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /** @return CartItem[] Oldest first, with products loaded to avoid one query per line */
+    public function findByOwner(User $user): array
+    {
+        return $this->createQueryBuilder('ci')
+            ->addSelect('p')
+            ->join('ci.product', 'p')
+            ->andWhere('ci.owner = :owner')
+            ->setParameter('owner', $user)
+            ->orderBy('ci.createdAt', 'ASC')
+            ->addOrderBy('ci.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 
-//    public function findOneBySomeField($value): ?CartItem
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function findOneByOwnerAndProduct(User $user, Product $product): ?CartItem
+    {
+        return $this->findOneBy(['owner' => $user, 'product' => $product]);
+    }
 }

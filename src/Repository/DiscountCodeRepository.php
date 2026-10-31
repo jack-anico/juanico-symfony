@@ -16,28 +16,19 @@ class DiscountCodeRepository extends ServiceEntityRepository
         parent::__construct($registry, DiscountCode::class);
     }
 
-//    /**
-//     * @return DiscountCode[] Returns an array of DiscountCode objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('d.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?DiscountCode
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /** Null unless the code is active, unexpired, under its usage limit and the subtotal meets its minimum. */
+    public function findValidByCode(string $code, string $subtotal): ?DiscountCode
+    {
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.code = :code')
+            ->andWhere('d.isActive = true')
+            ->andWhere('d.expiresAt IS NULL OR d.expiresAt > :now')
+            ->andWhere('d.usageLimit IS NULL OR d.timesUsed < d.usageLimit')
+            ->andWhere('d.minSpend IS NULL OR d.minSpend <= :subtotal')
+            ->setParameter('code', $code)
+            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('subtotal', $subtotal)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

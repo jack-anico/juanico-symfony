@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\Product;
+use App\Entity\User;
 use App\Entity\WishlistItem;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,28 +18,22 @@ class WishlistItemRepository extends ServiceEntityRepository
         parent::__construct($registry, WishlistItem::class);
     }
 
-//    /**
-//     * @return WishlistItem[] Returns an array of WishlistItem objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('w')
-//            ->andWhere('w.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('w.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /** @return WishlistItem[] Newest first, with products loaded */
+    public function findByOwner(User $user): array
+    {
+        return $this->createQueryBuilder('w')
+            ->addSelect('p')
+            ->join('w.product', 'p')
+            ->andWhere('w.owner = :owner')
+            ->setParameter('owner', $user)
+            ->orderBy('w.createdAt', 'DESC')
+            ->addOrderBy('w.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 
-//    public function findOneBySomeField($value): ?WishlistItem
-//    {
-//        return $this->createQueryBuilder('w')
-//            ->andWhere('w.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function existsFor(User $user, Product $product): bool
+    {
+        return $this->count(['owner' => $user, 'product' => $product]) > 0;
+    }
 }

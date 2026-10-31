@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: InquiryRepository::class)]
 class Inquiry
 {
+    public const STATUS_NEW = 'new';
+    public const STATUS_READ = 'read';
+    public const STATUS_RESOLVED = 'resolved';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
