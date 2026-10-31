@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
 {
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_ARCHIVED = 'archived';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
