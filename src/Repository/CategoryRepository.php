@@ -3,6 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Category;
+use App\Entity\Order;
+use App\Entity\OrderItem;
+use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +19,53 @@ class CategoryRepository extends ServiceEntityRepository
         parent::__construct($registry, Category::class);
     }
 
-//    /**
-//     * @return Category[] Returns an array of Category objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('c.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /** @return Category[] */
+    public function findActiveRoots(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.parent IS NULL')
+            ->andWhere('c.isActive = true')
+            ->orderBy('c.displayOrder', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 
-//    public function findOneBySomeField($value): ?Category
-//    {
-//        return $this->createQueryBuilder('c')
-//            ->andWhere('c.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /** @return Category[] */
+    public function findChildren(Category $parent): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.parent = :parent')
+            ->andWhere('c.isActive = true')
+            ->setParameter('parent', $parent)
+            ->orderBy('c.displayOrder', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Revenue per category from line items, excluding cancelled and refunded orders.
+     *
+     * @return list<array{id: int, name: string, revenue: string}>
+     */
+    public function revenueByCategory(\DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        return $this->createQueryBuilder('c')
+            ->select('c.id', 'c.name', 'SUM(i.quantity * i.unitPrice) AS revenue')
+            ->join(Product::class, 'p', 'WITH', 'p.category = c')
+            ->join(OrderItem::class, 'i', 'WITH', 'i.product = p')
+            ->join('i.order', 'o')
+            ->andWhere('o.createdAt BETWEEN :from AND :to')
+            ->andWhere('o.status <> :cancelled')
+            ->andWhere('o.paymentStatus <> :refunded')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->setParameter('cancelled', Order::STATUS_CANCELLED)
+            ->setParameter('refunded', Order::PAYMENT_REFUNDED)
+            ->groupBy('c.id', 'c.name')
+            ->orderBy('revenue', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
 }
