@@ -14,10 +14,10 @@ class StockMovement
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    private ?string $no = null;
+    private ?string $reason = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $note = null;
+    private ?string $reasonte = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -26,40 +26,37 @@ class StockMovement
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $ManyToOne = null;
-
     #[ORM\Column]
     private ?int $quantityChange = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $User = null;
+    #[ORM\ManyToOne]
+    private ?User $admin = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getNo(): ?string
+    public function getReason(): ?string
     {
-        return $this->no;
+        return $this->reason;
     }
 
-    public function setNo(string $no): static
+    public function setReason(string $reason): static
     {
-        $this->no = $no;
+        $this->reason = $reason;
 
         return $this;
     }
 
     public function getNote(): ?string
     {
-        return $this->note;
+        return $this->reasonte;
     }
 
-    public function setNote(?string $note): static
+    public function setNote(?string $reasonte): static
     {
-        $this->note = $note;
+        $this->reasonte = $reasonte;
 
         return $this;
     }
@@ -88,18 +85,6 @@ class StockMovement
         return $this;
     }
 
-    public function getManyToOne(): ?string
-    {
-        return $this->ManyToOne;
-    }
-
-    public function setManyToOne(string $ManyToOne): static
-    {
-        $this->ManyToOne = $ManyToOne;
-
-        return $this;
-    }
-
     public function getQuantityChange(): ?int
     {
         return $this->quantityChange;
@@ -112,15 +97,16 @@ class StockMovement
         return $this;
     }
 
-    public function getUser(): ?string
+    public function getAdmin(): ?User
     {
-        return $this->User;
+        return $this->admin;
     }
 
-    public function setUser(string $User): static
+    public function setAdmin(?User $admin): static
     {
-        $this->User = $User;
+        $this->admin = $admin;
 
         return $this;
     }
+
 }
