@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order{% endblock %}
+
+{% block body %}
+    <h1>Order</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ order.id }}</td>
+            </tr>
+            <tr>
+                <th>OrderNumber</th>
+                <td>{{ order.orderNumber }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ order.status }}</td>
+            </tr>
+            <tr>
+                <th>PaymentMethod</th>
+                <td>{{ order.paymentMethod }}</td>
+            </tr>
+            <tr>
+                <th>PaymentStatus</th>
+                <td>{{ order.paymentStatus }}</td>
+            </tr>
+            <tr>
+                <th>ShippingMethod</th>
+                <td>{{ order.shippingMethod }}</td>
+            </tr>
+            <tr>
+                <th>PaymentProof</th>
+                <td>{{ order.paymentProof }}</td>
+            </tr>
+            <tr>
+                <th>CancelReason</th>
+                <td>{{ order.cancelReason }}</td>
+            </tr>
+            <tr>
+                <th>Subtotal</th>
+                <td>{{ order.subtotal }}</td>
+            </tr>
+            <tr>
+                <th>ShippingFee</th>
+                <td>{{ order.shippingFee }}</td>
+            </tr>
+            <tr>
+                <th>Discount</th>
+                <td>{{ order.discount }}</td>
+            </tr>
+            <tr>
+                <th>Total</th>
+                <td>{{ order.total }}</td>
+            </tr>
+            <tr>
+                <th>Notes</th>
+                <td>{{ order.notes }}</td>
+            </tr>
+            <tr>
+                <th>TrackingNumber</th>
+                <td>{{ order.trackingNumber }}</td>
+            </tr>
+            <tr>
+                <th>CreatedAt</th>
+                <td>{{ order.createdAt ? order.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>PaidAt</th>
+                <td>{{ order.paidAt ? order.paidAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>DeliveredAt</th>
+                <td>{{ order.deliveredAt ? order.deliveredAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_admin_order_index') }}">back to list</a>
+
+    <a href="{{ path('app_admin_order_edit', {'id': order.id}) }}">edit</a>
+
+    {{ include('admin/order/_delete_form.html.twig') }}
+{% endblock %}
