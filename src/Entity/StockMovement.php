@@ -29,6 +29,12 @@ class StockMovement
     #[ORM\Column(length: 255)]
     private ?string $ManyToOne = null;
 
+    #[ORM\Column]
+    private ?int $quantityChange = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $User = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -90,6 +96,30 @@ class StockMovement
     public function setManyToOne(string $ManyToOne): static
     {
         $this->ManyToOne = $ManyToOne;
+
+        return $this;
+    }
+
+    public function getQuantityChange(): ?int
+    {
+        return $this->quantityChange;
+    }
+
+    public function setQuantityChange(int $quantityChange): static
+    {
+        $this->quantityChange = $quantityChange;
+
+        return $this;
+    }
+
+    public function getUser(): ?string
+    {
+        return $this->User;
+    }
+
+    public function setUser(string $User): static
+    {
+        $this->User = $User;
 
         return $this;
     }
