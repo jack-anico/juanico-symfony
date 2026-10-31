@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}DiscountCode{% endblock %}
+
+{% block body %}
+    <h1>DiscountCode</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ discount_code.id }}</td>
+            </tr>
+            <tr>
+                <th>Code</th>
+                <td>{{ discount_code.code }}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>{{ discount_code.type }}</td>
+            </tr>
+            <tr>
+                <th>Value</th>
+                <td>{{ discount_code.value }}</td>
+            </tr>
+            <tr>
+                <th>MinSpend</th>
+                <td>{{ discount_code.minSpend }}</td>
+            </tr>
+            <tr>
+                <th>UsageLimit</th>
+                <td>{{ discount_code.usageLimit }}</td>
+            </tr>
+            <tr>
+                <th>TimesUsed</th>
+                <td>{{ discount_code.timesUsed }}</td>
+            </tr>
+            <tr>
+                <th>ExpiresAt</th>
+                <td>{{ discount_code.expiresAt ? discount_code.expiresAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>IsActive</th>
+                <td>{{ discount_code.isActive ? 'Yes' : 'No' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_admin_discount_code_index') }}">back to list</a>
+
+    <a href="{{ path('app_admin_discount_code_edit', {'id': discount_code.id}) }}">edit</a>
+
+    {{ include('admin/discount_code/_delete_form.html.twig') }}
+{% endblock %}

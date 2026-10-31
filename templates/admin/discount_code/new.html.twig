@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New DiscountCode{% endblock %}
+
+{% block body %}
+    <h1>Create new DiscountCode</h1>
+
+    {{ include('admin/discount_code/_form.html.twig') }}
+
+    <a href="{{ path('app_admin_discount_code_index') }}">back to list</a>
+{% endblock %}
