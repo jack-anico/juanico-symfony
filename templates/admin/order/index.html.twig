@@ -1,65 +1,29 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Order index{% endblock %}
+{% block title %}Orders{% endblock %}
 
 {% block body %}
-    <h1>Order index</h1>
+    <h1>Orders</h1>
 
-    <table class="table">
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
+
+    <table>
         <thead>
-            <tr>
-                <th>Id</th>
-                <th>OrderNumber</th>
-                <th>Status</th>
-                <th>PaymentMethod</th>
-                <th>PaymentStatus</th>
-                <th>ShippingMethod</th>
-                <th>PaymentProof</th>
-                <th>CancelReason</th>
-                <th>Subtotal</th>
-                <th>ShippingFee</th>
-                <th>Discount</th>
-                <th>Total</th>
-                <th>Notes</th>
-                <th>TrackingNumber</th>
-                <th>CreatedAt</th>
-                <th>PaidAt</th>
-                <th>DeliveredAt</th>
-                <th>actions</th>
-            </tr>
+            <tr><th>Order</th><th>Date</th><th>Customer</th><th>Status</th><th>Payment</th><th>Total</th></tr>
         </thead>
         <tbody>
-        {% for order in orders %}
-            <tr>
-                <td>{{ order.id }}</td>
-                <td>{{ order.orderNumber }}</td>
-                <td>{{ order.status }}</td>
-                <td>{{ order.paymentMethod }}</td>
-                <td>{{ order.paymentStatus }}</td>
-                <td>{{ order.shippingMethod }}</td>
-                <td>{{ order.paymentProof }}</td>
-                <td>{{ order.cancelReason }}</td>
-                <td>{{ order.subtotal }}</td>
-                <td>{{ order.shippingFee }}</td>
-                <td>{{ order.discount }}</td>
-                <td>{{ order.total }}</td>
-                <td>{{ order.notes }}</td>
-                <td>{{ order.trackingNumber }}</td>
-                <td>{{ order.createdAt ? order.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ order.paidAt ? order.paidAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ order.deliveredAt ? order.deliveredAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_admin_order_show', {'id': order.id}) }}">show</a>
-                    <a href="{{ path('app_admin_order_edit', {'id': order.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="18">no records found</td>
-            </tr>
-        {% endfor %}
+            {% for order in orders %}
+                <tr>
+                    <td><a href="{{ path('app_admin_order_show', {id: order.id}) }}">{{ order.orderNumber }}</a></td>
+                    <td>{{ order.createdAt|date('Y-m-d H:i') }}</td>
+                    <td>{{ order.customer.fullName }}</td>
+                    <td>{{ order.status|capitalize }}</td>
+                    <td>{{ order.paymentMethod|upper }} ({{ order.paymentStatus }})</td>
+                    <td>PHP {{ order.total }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">No orders yet</td></tr>
+            {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('app_admin_order_new') }}">Create new</a>
 {% endblock %}

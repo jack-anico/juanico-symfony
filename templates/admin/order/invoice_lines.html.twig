@@ -1,0 +1,20 @@
+<table>
+    <thead><tr><th>Item</th><th>SKU</th><th>Qty</th><th>Unit price</th><th>Line total</th></tr></thead>
+    <tbody>
+        {% for item in order.items %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.product.sku }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>PHP {{ item.unitPrice }}</td>
+                <td>PHP {{ (item.quantity * item.unitPrice)|number_format(2, '.', '') }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr><th colspan="4">Subtotal</th><td>PHP {{ order.subtotal }}</td></tr>
+        <tr><th colspan="4">Shipping</th><td>PHP {{ order.shippingFee }}</td></tr>
+        <tr><th colspan="4">Discount</th><td>PHP {{ order.discount }}</td></tr>
+        <tr><th colspan="4">Total</th><td>PHP {{ order.total }}</td></tr>
+    </tfoot>
+</table>

@@ -2,12 +2,9 @@
 
 namespace App\Form;
 
-use App\Entity\Address;
-use App\Entity\DiscountCode;
 use App\Entity\Order;
-use App\Entity\User;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -15,41 +12,28 @@ class OrderStatusType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        /** @var Order $order */
+        $order = $options['data'];
+
+        // Only the current status and valid next steps can be submitted.
+        // Cancelling has its own action because it requires a reason.
+        $statuses = array_diff(
+            [$order->getStatus(), ...(Order::TRANSITIONS[$order->getStatus()] ?? [])],
+            $order->getStatus() === Order::STATUS_CANCELLED ? [] : [Order::STATUS_CANCELLED],
+        );
+
         $builder
-            ->add('orderNumber')
-            ->add('status')
-            ->add('paymentMethod')
-            ->add('paymentStatus')
-            ->add('shippingMethod')
-            ->add('paymentProof')
-            ->add('cancelReason')
-            ->add('subtotal')
-            ->add('shippingFee')
-            ->add('discount')
-            ->add('total')
-            ->add('notes')
-            ->add('trackingNumber')
-            ->add('createdAt', null, [
-                'widget' => 'single_text'
+            ->add('status', ChoiceType::class, [
+                'choices' => array_combine(array_map('ucfirst', $statuses), $statuses),
             ])
-            ->add('paidAt', null, [
-                'widget' => 'single_text'
+            ->add('paymentStatus', ChoiceType::class, [
+                'choices' => [
+                    'Unpaid' => Order::PAYMENT_UNPAID,
+                    'Paid' => Order::PAYMENT_PAID,
+                    'Refunded' => Order::PAYMENT_REFUNDED,
+                ],
             ])
-            ->add('deliveredAt', null, [
-                'widget' => 'single_text'
-            ])
-            ->add('customer', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => 'id',
-            ])
-            ->add('shippingAddress', EntityType::class, [
-                'class' => Address::class,
-                'choice_label' => 'id',
-            ])
-            ->add('discountCode', EntityType::class, [
-                'class' => DiscountCode::class,
-                'choice_label' => 'id',
-            ])
+            ->add('trackingNumber', null, ['required' => false])
         ;
     }
 

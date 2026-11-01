@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Invoice {{ order.orderNumber }}{% endblock %}
+
+{% block body %}
+    <h1>Invoice {{ order.orderNumber }}</h1>
+
+    <p>Juanico Hardware | {{ order.createdAt|date('F j, Y') }}</p>
+
+    {% set address = order.shippingAddress %}
+    <p>
+        Bill to: {{ order.customer.fullName }}<br>
+        Ship to: {{ address.recipient }}, {{ address.line1 }}, {{ address.city }}, {{ address.province }} {{ address.postalCode }}<br>
+        Phone: {{ address.phone }}
+    </p>
+
+    {{ include('admin/order/invoice_lines.html.twig') }}
+
+    <p>Payment: {{ order.paymentMethod|upper }} ({{ order.paymentStatus }})</p>
+
+    <p><a href="{{ path('app_admin_order_show', {id: order.id}) }}">Back to order</a></p>
+{% endblock %}
