@@ -3,7 +3,9 @@
 namespace App\Controller\Admin;
 
 use App\Entity\DeliveryZone;
+use App\Entity\User;
 use App\Form\DeliveryZoneType;
+use App\Repository\AuditLogRepository;
 use App\Repository\DeliveryZoneRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,15 +25,19 @@ final class DeliveryZoneController extends AbstractController
     }
 
     #[Route('/new', name: 'app_admin_delivery_zone_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, AuditLogRepository $auditLog): Response
     {
         $deliveryZone = new DeliveryZone();
         $form = $this->createForm(DeliveryZoneType::class, $deliveryZone);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($deliveryZone);
-            $entityManager->flush();
+            $entityManager->wrapInTransaction(function () use ($entityManager, $deliveryZone, $auditLog): void {
+                $entityManager->persist($deliveryZone);
+                $entityManager->flush();
+                $auditLog->record($this->admin(), 'zone_created', 'DeliveryZone', $deliveryZone->getId(), ['fee' => $deliveryZone->getShippingFee()]);
+                $entityManager->flush();
+            });
 
             return $this->redirectToRoute('app_admin_delivery_zone_index', [], Response::HTTP_SEE_OTHER);
         }
@@ -51,12 +57,21 @@ final class DeliveryZoneController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_admin_delivery_zone_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, DeliveryZone $deliveryZone, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, DeliveryZone $deliveryZone, EntityManagerInterface $entityManager, AuditLogRepository $auditLog): Response
     {
+        $previousFee = $deliveryZone->getShippingFee();
+        $previousActive = $deliveryZone->isActive();
         $form = $this->createForm(DeliveryZoneType::class, $deliveryZone);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Both rows are saved by this one flush, which runs in a single transaction.
+            $auditLog->record($this->admin(), 'zone_updated', 'DeliveryZone', $deliveryZone->getId(), [
+                'fee_from' => $previousFee,
+                'fee_to' => $deliveryZone->getShippingFee(),
+                'active_from' => $previousActive,
+                'active_to' => $deliveryZone->isActive(),
+            ]);
             $entityManager->flush();
 
             return $this->redirectToRoute('app_admin_delivery_zone_index', [], Response::HTTP_SEE_OTHER);
@@ -69,13 +84,25 @@ final class DeliveryZoneController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_admin_delivery_zone_delete', methods: ['POST'])]
-    public function delete(Request $request, DeliveryZone $deliveryZone, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, DeliveryZone $deliveryZone, EntityManagerInterface $entityManager, AuditLogRepository $auditLog): Response
     {
         if ($this->isCsrfTokenValid('delete'.$deliveryZone->getId(), $request->getPayload()->getString('_token'))) {
+            $auditLog->record($this->admin(), 'zone_deleted', 'DeliveryZone', $deliveryZone->getId(), [
+                'name' => $deliveryZone->getName(),
+                'fee' => $deliveryZone->getShippingFee(),
+            ]);
             $entityManager->remove($deliveryZone);
             $entityManager->flush();
         }
 
         return $this->redirectToRoute('app_admin_delivery_zone_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    private function admin(): User
+    {
+        /** @var User $admin */
+        $admin = $this->getUser();
+
+        return $admin;
     }
 }

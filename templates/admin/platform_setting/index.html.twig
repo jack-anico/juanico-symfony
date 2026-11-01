@@ -1,39 +1,25 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}PlatformSetting index{% endblock %}
+{% block title %}Platform Settings{% endblock %}
 
 {% block body %}
-    <h1>PlatformSetting index</h1>
+    <h1>Platform Settings</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>SettingKey</th>
-                <th>SettingValue</th>
-                <th>Description</th>
-                <th>actions</th>
-            </tr>
-        </thead>
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
+
+    <table>
+        <thead><tr><th>Setting</th><th>Value</th><th>Description</th><th></th></tr></thead>
         <tbody>
-        {% for platform_setting in platform_settings %}
-            <tr>
-                <td>{{ platform_setting.id }}</td>
-                <td>{{ platform_setting.settingKey }}</td>
-                <td>{{ platform_setting.settingValue }}</td>
-                <td>{{ platform_setting.description }}</td>
-                <td>
-                    <a href="{{ path('app_admin_platform_setting_show', {'id': platform_setting.id}) }}">show</a>
-                    <a href="{{ path('app_admin_platform_setting_edit', {'id': platform_setting.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
-        {% endfor %}
+            {% for setting in platform_settings %}
+                <tr>
+                    <td>{{ setting.settingKey }}</td>
+                    <td>{{ setting.settingValue }}</td>
+                    <td>{{ setting.description }}</td>
+                    <td><a href="{{ path('app_admin_platform_setting_edit', {id: setting.id}) }}">Edit</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">No settings found. Load PlatformSettingFixtures.</td></tr>
+            {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('app_admin_platform_setting_new') }}">Create new</a>
 {% endblock %}

@@ -1,43 +1,26 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}AuditLog index{% endblock %}
+{% block title %}Audit Log{% endblock %}
 
 {% block body %}
-    <h1>AuditLog index</h1>
+    <h1>Audit Log</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Action</th>
-                <th>EntityType</th>
-                <th>EntityId</th>
-                <th>Detail</th>
-                <th>CreatedAt</th>
-                <th>actions</th>
-            </tr>
-        </thead>
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
+
+    <table>
+        <thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Record</th><th></th></tr></thead>
         <tbody>
-        {% for audit_log in audit_logs %}
-            <tr>
-                <td>{{ audit_log.id }}</td>
-                <td>{{ audit_log.action }}</td>
-                <td>{{ audit_log.entityType }}</td>
-                <td>{{ audit_log.entityId }}</td>
-                <td>{{ audit_log.detail ? audit_log.detail|json_encode : '' }}</td>
-                <td>{{ audit_log.createdAt ? audit_log.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_admin_audit_log_show', {'id': audit_log.id}) }}">show</a>
-                    <a href="{{ path('app_admin_audit_log_edit', {'id': audit_log.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="7">no records found</td>
-            </tr>
-        {% endfor %}
+            {% for entry in audit_logs %}
+                <tr>
+                    <td>{{ entry.createdAt|date('Y-m-d H:i:s') }}</td>
+                    <td>{{ entry.admin.email }}</td>
+                    <td>{{ entry.action }}</td>
+                    <td>{{ entry.entityType }} #{{ entry.entityId }}</td>
+                    <td><a href="{{ path('app_admin_audit_log_show', {id: entry.id}) }}">Details</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5">No entries yet</td></tr>
+            {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('app_admin_audit_log_new') }}">Create new</a>
 {% endblock %}
