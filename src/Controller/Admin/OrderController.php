@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use Knp\Component\Pager\PaginatorInterface;
 use App\Entity\Order;
 use App\Entity\Payment;
 use App\Entity\User;
@@ -22,10 +23,10 @@ use Symfony\Component\Routing\Attribute\Route;
 final class OrderController extends AbstractController
 {
     #[Route(name: 'app_admin_order_index', methods: ['GET'])]
-    public function index(OrderRepository $orderRepository): Response
+    public function index(Request $request, OrderRepository $orderRepository, PaginatorInterface $paginator): Response
     {
         return $this->render('admin/order/index.html.twig', [
-            'orders' => $orderRepository->findBy([], ['createdAt' => 'DESC']),
+            'orders' => $paginator->paginate($orderRepository->adminListQuery(), max(1, $request->query->getInt('page', 1)), 20),
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use Doctrine\ORM\Query;
 use App\Entity\Inquiry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -24,6 +25,17 @@ class InquiryRepository extends ServiceEntityRepository
             ->setParameter('resolved', Inquiry::STATUS_RESOLVED)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /** Returns the query so controllers can paginate it; a null status lists everything. */
+    public function listQuery(?string $status = null): Query
+    {
+        $qb = $this->createQueryBuilder('i')->orderBy('i.createdAt', 'DESC')->addOrderBy('i.id', 'DESC');
+        if (null !== $status) {
+            $qb->andWhere('i.status = :status')->setParameter('status', $status);
+        }
+
+        return $qb->getQuery();
     }
 
     /** @return Inquiry[] Newest first */

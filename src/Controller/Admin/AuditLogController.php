@@ -2,6 +2,8 @@
 
 namespace App\Controller\Admin;
 
+use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Component\HttpFoundation\Request;
 use App\Entity\AuditLog;
 use App\Repository\AuditLogRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -15,10 +17,10 @@ use Symfony\Component\Routing\Attribute\Route;
 final class AuditLogController extends AbstractController
 {
     #[Route(name: 'app_admin_audit_log_index', methods: ['GET'])]
-    public function index(AuditLogRepository $auditLogRepository): Response
+    public function index(Request $request, AuditLogRepository $auditLogRepository, PaginatorInterface $paginator): Response
     {
         return $this->render('admin/audit_log/index.html.twig', [
-            'audit_logs' => $auditLogRepository->findRecent(),
+            'audit_logs' => $paginator->paginate($auditLogRepository->listQuery(), max(1, $request->query->getInt('page', 1)), 20),
         ]);
     }
 

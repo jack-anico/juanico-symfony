@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use Knp\Component\Pager\PaginatorInterface;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,10 +18,10 @@ use Symfony\Component\Routing\Attribute\Route;
 final class UserController extends AbstractController
 {
     #[Route(name: 'app_admin_user_index', methods: ['GET'])]
-    public function index(UserRepository $userRepository): Response
+    public function index(Request $request, UserRepository $userRepository, PaginatorInterface $paginator): Response
     {
         return $this->render('admin/user/index.html.twig', [
-            'users' => $userRepository->findBy([], ['createdAt' => 'DESC']),
+            'users' => $paginator->paginate($userRepository->adminListQuery(), max(1, $request->query->getInt('page', 1)), 20),
         ]);
     }
 

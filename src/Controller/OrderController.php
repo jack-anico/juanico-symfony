@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Knp\Component\Pager\PaginatorInterface;
 use App\Entity\Order;
 use App\Entity\Payment;
 use App\Entity\User;
@@ -20,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class OrderController extends AbstractController
 {
     #[Route('', name: 'app_order_index', methods: ['GET'])]
-    public function index(Request $request, OrderRepository $orders): Response
+    public function index(Request $request, OrderRepository $orders, PaginatorInterface $paginator): Response
     {
         /** @var User $user */
         $user = $this->getUser();
@@ -28,7 +29,7 @@ final class OrderController extends AbstractController
         $filter = array_key_exists($status, Order::TRANSITIONS) ? $status : null;
 
         return $this->render('order/index.html.twig', [
-            'orders' => $orders->findForCustomer($user, $filter)->getResult(),
+            'orders' => $paginator->paginate($orders->findForCustomer($user, $filter), max(1, $request->query->getInt('page', 1)), 20),
             'statuses' => array_keys(Order::TRANSITIONS),
             'current_status' => $filter,
         ]);

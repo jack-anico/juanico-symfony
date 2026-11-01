@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use Knp\Component\Pager\PaginatorInterface;
 use App\Entity\Product;
 use App\Entity\StockMovement;
 use App\Entity\User;
@@ -22,10 +23,10 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ProductController extends AbstractController
 {
     #[Route(name: 'app_admin_product_index', methods: ['GET'])]
-    public function index(ProductRepository $productRepository): Response
+    public function index(Request $request, ProductRepository $productRepository, PaginatorInterface $paginator): Response
     {
         return $this->render('admin/product/index.html.twig', [
-            'products' => $productRepository->findAll(),
+            'products' => $paginator->paginate($productRepository->adminListQuery(), max(1, $request->query->getInt('page', 1)), 20),
         ]);
     }
 
