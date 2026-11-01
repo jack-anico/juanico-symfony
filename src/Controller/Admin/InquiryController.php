@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use Knp\Component\Pager\PaginatorInterface;
 use App\Entity\Inquiry;
 use App\Repository\InquiryRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,15 +20,13 @@ final class InquiryController extends AbstractController
     private const STATUSES = [Inquiry::STATUS_NEW, Inquiry::STATUS_READ, Inquiry::STATUS_RESOLVED];
 
     #[Route(name: 'app_admin_inquiry_index', methods: ['GET'])]
-    public function index(Request $request, InquiryRepository $inquiryRepository): Response
+    public function index(Request $request, InquiryRepository $inquiryRepository, PaginatorInterface $paginator): Response
     {
         $status = $request->query->getString('status');
         $filter = in_array($status, self::STATUSES, true) ? $status : null;
 
         return $this->render('admin/inquiry/index.html.twig', [
-            'inquiries' => null === $filter
-                ? $inquiryRepository->findBy([], ['createdAt' => 'DESC'])
-                : $inquiryRepository->findByStatus($filter),
+            'inquiries' => $paginator->paginate($inquiryRepository->listQuery($filter), max(1, $request->query->getInt('page', 1)), 20),
             'statuses' => self::STATUSES,
             'current_status' => $filter,
         ]);

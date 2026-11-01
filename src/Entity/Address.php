@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Repository\AddressRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -13,24 +14,38 @@ class Address
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     #[ORM\Column(length: 50)]
     private ?string $label = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 120)]
     #[ORM\Column(length: 120)]
     private ?string $recipient = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 30)]
     #[ORM\Column(length: 30)]
     private ?string $phone = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     #[ORM\Column(length: 255)]
     private ?string $line1 = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100)]
     private ?string $city = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     #[ORM\Column(length: 100)]
     private ?string $province = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 20)]
     #[ORM\Column(length: 20)]
     private ?string $postalCode = null;
 

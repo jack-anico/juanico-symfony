@@ -778,7 +778,7 @@ class CheckoutPaymentTest extends WebTestCase
             }
 
             foreach (file($path) as $number => $line) {
-                $writesStatus = str_contains($line, '->setStatus(') && !preg_match('/\$(inquiry|this)->setStatus\(|\$this->status/', $line);
+                $writesStatus = str_contains($line, '->setStatus(') && !preg_match('/\$(inquiry|this)->setStatus\(|\$this->status|(Product|Inquiry)::STATUS_/', $line);
                 $writesWithQuery = preg_match('/\bSET\s+\w+\.status\b|\bUPDATE\s+`?(order|payment)`?\b/i', $line);
                 if ($writesStatus || $writesWithQuery) {
                     $violations[] = $path.':'.($number + 1).' '.trim($line);

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use App\Entity\CartItem;
 use App\Entity\Product;
 use App\Entity\User;
@@ -20,14 +21,14 @@ final class CartController extends AbstractController
     {
         $items = $cartItems->findByOwner($this->currentUser());
 
-        $cents = 0;
+        $subtotal = '0.00';
         foreach ($items as $item) {
-            $cents += (int) round((float) $item->getProduct()->getEffectivePrice() * 100) * $item->getQuantity();
+            $subtotal = bcadd($subtotal, $item->getLineTotal(), 2);
         }
 
         return $this->render('cart/index.html.twig', [
             'items' => $items,
-            'subtotal' => number_format($cents / 100, 2, '.', ''),
+            'subtotal' => $subtotal,
         ]);
     }
 
@@ -60,7 +61,14 @@ final class CartController extends AbstractController
             $entityManager->persist($item);
         }
         $item->setQuantity($total)->setUpdatedAt($now);
-        $entityManager->flush();
+
+        try {
+            $entityManager->flush();
+        } catch (UniqueConstraintViolationException) {
+            // A double click added the same product twice; the first request already saved it.
+            return $this->redirectToRoute('app_cart', [], Response::HTTP_SEE_OTHER);
+        }
+
         $this->addFlash('success', 'Added to your cart.');
 
         return $this->redirectToRoute('app_cart', [], Response::HTTP_SEE_OTHER);

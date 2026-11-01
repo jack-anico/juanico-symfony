@@ -1,0 +1,10 @@
+knp_paginator:
+    default_options:
+        # The catalog already uses "sort" for its own filter, so the paginator's sorting gets other names.
+        sort_field_name: knp_sort
+        sort_direction_name: knp_direction
+        filter_field_name: knp_filter
+        filter_value_name: knp_filter_value
+        page_name: page
+    template:
+        pagination: '@KnpPaginator/Pagination/sliding.html.twig'

@@ -7,7 +7,7 @@
                 <td>{{ item.product.sku }}</td>
                 <td>{{ item.quantity }}</td>
                 <td>PHP {{ item.unitPrice }}</td>
-                <td>PHP {{ (item.quantity * item.unitPrice)|number_format(2, '.', '') }}</td>
+                <td>PHP {{ item.lineTotal }}</td>
             </tr>
         {% endfor %}
     </tbody>

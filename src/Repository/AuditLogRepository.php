@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use Doctrine\ORM\Query;
 use App\Entity\AuditLog;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -27,6 +28,12 @@ class AuditLogRepository extends ServiceEntityRepository
             ->setEntityId($entityId)
             ->setDetail($detail)
             ->setCreatedAt(new \DateTimeImmutable()));
+    }
+
+    /** Returns the query so controllers can paginate it. */
+    public function listQuery(): Query
+    {
+        return $this->createQueryBuilder('a')->orderBy('a.createdAt', 'DESC')->addOrderBy('a.id', 'DESC')->getQuery();
     }
 
     /** @return AuditLog[] Newest first */

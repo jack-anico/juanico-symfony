@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Knp\Component\Pager\PaginatorInterface;
 use App\Form\ProductFilterType;
 use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CatalogController extends AbstractController
 {
     #[Route('/catalog', name: 'app_catalog', methods: ['GET'])]
-    public function index(Request $request, ProductRepository $products, FormFactoryInterface $formFactory): Response
+    public function index(Request $request, ProductRepository $products, FormFactoryInterface $formFactory, PaginatorInterface $paginator): Response
     {
         // An unnamed form keeps the URLs short, such as /catalog?q=saw&sort=name
         $form = $formFactory->createNamed('', ProductFilterType::class);
@@ -23,14 +24,14 @@ final class CatalogController extends AbstractController
 
         return $this->render('catalog/index.html.twig', [
             'form' => $form,
-            'products' => $products->search(
+            'products' => $paginator->paginate($products->search(
                 $filters['q'] ?? null,
                 ($filters['category'] ?? null)?->getId(),
                 ($filters['brand'] ?? null)?->getId(),
                 $filters['minPrice'] ?? null,
                 $filters['maxPrice'] ?? null,
                 $filters['sort'] ?? null,
-            )->getResult(),
+            ), max(1, $request->query->getInt('page', 1)), 20, ['wrap-queries' => true]),
         ]);
     }
 }

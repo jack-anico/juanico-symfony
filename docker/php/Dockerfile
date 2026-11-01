@@ -10,6 +10,8 @@ RUN apt-get update \
 RUN curl -sS https://getcomposer.org/installer \
     | php -- --install-dir=/usr/local/bin --filename=composer
 
+RUN echo 'date.timezone=Asia/Manila' > /usr/local/etc/php/conf.d/timezone.ini
+
 RUN git config --system --add safe.directory /var/www/html
 
 WORKDIR /var/www/html

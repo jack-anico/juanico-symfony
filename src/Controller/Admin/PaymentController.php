@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use Knp\Component\Pager\PaginatorInterface;
 use App\Entity\Order;
 use App\Entity\Payment;
 use App\Entity\User;
@@ -23,7 +24,7 @@ final class PaymentController extends AbstractController
     private const METHODS = [Payment::METHOD_COD, Payment::METHOD_GCASH, Payment::METHOD_CARD, Payment::METHOD_BANK];
 
     #[Route(name: 'app_admin_payment_index', methods: ['GET'])]
-    public function index(Request $request, PaymentRepository $payments): Response
+    public function index(Request $request, PaymentRepository $payments, PaginatorInterface $paginator): Response
     {
         $method = $request->query->getString('method');
         $status = $request->query->getString('status');
@@ -31,7 +32,7 @@ final class PaymentController extends AbstractController
         $status = array_key_exists($status, Payment::TRANSITIONS) ? $status : null;
 
         return $this->render('admin/payment/index.html.twig', [
-            'payments' => $payments->findByMethodAndStatus($method, $status),
+            'payments' => $paginator->paginate($payments->listQuery($method, $status), max(1, $request->query->getInt('page', 1)), 20),
             'bank_queue' => $payments->findPendingBankTransfers(),
             'cod_queue' => $payments->findCollectableCod(),
             'refund_queue' => $payments->findAwaitingRefund(),

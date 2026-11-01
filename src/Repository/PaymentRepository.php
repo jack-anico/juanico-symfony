@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use Doctrine\ORM\Query;
 use App\Entity\Order;
 use App\Entity\Payment;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -21,6 +22,12 @@ class PaymentRepository extends ServiceEntityRepository
     /** @return Payment[] Newest first; a null filter matches everything */
     public function findByMethodAndStatus(?string $method = null, ?string $status = null): array
     {
+        return $this->listQuery($method, $status)->getResult();
+    }
+
+    /** Returns the query so controllers can paginate it. */
+    public function listQuery(?string $method = null, ?string $status = null): Query
+    {
         $qb = $this->withOrder()->orderBy('p.createdAt', 'DESC')->addOrderBy('p.id', 'DESC');
 
         if (null !== $method) {
@@ -30,7 +37,7 @@ class PaymentRepository extends ServiceEntityRepository
             $qb->andWhere('p.status = :status')->setParameter('status', $status);
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb->getQuery();
     }
 
     /** @return Payment[] Bank transfers waiting for an admin, oldest first */

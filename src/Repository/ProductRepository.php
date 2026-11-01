@@ -66,6 +66,12 @@ class ProductRepository extends ServiceEntityRepository
         return $qb->addOrderBy('p.id', 'DESC')->getQuery();
     }
 
+    /** Every product for the admin table. Returns the query so controllers can paginate it. */
+    public function adminListQuery(): Query
+    {
+        return $this->createQueryBuilder('p')->orderBy('p.id', 'DESC')->getQuery();
+    }
+
     /** @return Product[] */
     public function findFeatured(int $limit = 8): array
     {
@@ -169,7 +175,7 @@ class ProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return number_format((float) $value, 2, '.', '');
+        return bcadd((string) $value, '0', 2);
     }
 
     public function findActiveBySlug(string $slug): ?Product

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use Doctrine\ORM\Query;
 use App\Entity\Payment;
 use App\Entity\Order;
 use App\Entity\User;
@@ -33,6 +34,12 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $user->setPassword($newHashedPassword);
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
+    }
+
+    /** Every account for the admin table. Returns the query so controllers can paginate it. */
+    public function adminListQuery(): Query
+    {
+        return $this->createQueryBuilder('u')->orderBy('u.createdAt', 'DESC')->addOrderBy('u.id', 'DESC')->getQuery();
     }
 
     /** @return User[] */

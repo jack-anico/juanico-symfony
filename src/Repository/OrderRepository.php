@@ -31,7 +31,7 @@ class OrderRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return number_format((float) $total, 2, '.', '');
+        return bcadd((string) $total, '0', 2);
     }
 
     public function countBetween(\DateTimeImmutable $from, \DateTimeImmutable $to): int
@@ -52,7 +52,7 @@ class OrderRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return number_format((float) $average, 2, '.', '');
+        return bcadd((string) $average, '0.005', 2);
     }
 
     /** @return array<string, int> Order count keyed by status */
@@ -78,6 +78,12 @@ class OrderRepository extends ServiceEntityRepository
             ->orderBy('o.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /** Every order for the admin table. Returns the query so controllers can paginate it. */
+    public function adminListQuery(): Query
+    {
+        return $this->createQueryBuilder('o')->orderBy('o.createdAt', 'DESC')->addOrderBy('o.id', 'DESC')->getQuery();
     }
 
     public function findByIdempotencyKey(string $key): ?Order

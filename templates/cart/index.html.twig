@@ -20,7 +20,7 @@
                                 <button>Update</button>
                             </form>
                         </td>
-                        <td>PHP {{ (item.quantity * item.product.effectivePrice)|number_format(2, '.', '') }}</td>
+                        <td>PHP {{ item.lineTotal }}</td>
                         <td>
                             <form method="post" action="{{ path('app_cart_remove', {id: item.id}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">

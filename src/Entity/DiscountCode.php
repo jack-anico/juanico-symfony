@@ -2,11 +2,15 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use App\Repository\DiscountCodeRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DiscountCodeRepository::class)]
+#[UniqueEntity(fields: ['code'], message: 'This code already exists.')]
+#[Assert\Expression('this.getType() !== "percent" or this.getValue() <= 100', message: 'A percent discount cannot exceed 100.')]
 class DiscountCode
 {
     #[ORM\Id]
@@ -14,18 +18,25 @@ class DiscountCode
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 40)]
     #[ORM\Column(length: 40, unique: true)]
     private ?string $code = null;
 
+    #[Assert\Choice(choices: ['percent', 'fixed'])]
     #[ORM\Column(length: 10)]
     private ?string $type = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Positive]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $value = null;
 
+    #[Assert\PositiveOrZero]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $minSpend = null;
 
+    #[Assert\Positive]
     #[ORM\Column(nullable: true)]
     private ?int $usageLimit = null;
 

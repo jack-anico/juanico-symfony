@@ -27,5 +27,7 @@ class AdminUserFixtures extends Fixture
 
         $manager->persist($admin);
         $manager->flush();
+
+        $this->addReference('admin-user', $admin);
     }
 }

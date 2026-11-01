@@ -274,8 +274,8 @@ class RepositoryQueriesTest extends KernelTestCase
         $product = $this->product('Saw', $this->category('Tools'));
 
         $five = $this->review($author, $product, 5, true);
-        $this->review($author, $product, 2, true);
-        $pending = $this->review($author, $product, 1, false);
+        $this->review($this->user('second@example.test'), $product, 2, true);
+        $pending = $this->review($this->user('third@example.test'), $product, 1, false);
         $this->em->flush();
 
         $repo = $this->em->getRepository(Review::class);

@@ -57,6 +57,8 @@ class ProductFilterType extends AbstractType
         $resolver->setDefaults([
             'method' => 'GET',
             'csrf_protection' => false,
+            // The paginator's ?page= shares the query string with these filters
+            'allow_extra_fields' => true,
         ]);
     }
 }

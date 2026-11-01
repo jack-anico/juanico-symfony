@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Entity\WishlistItem;
@@ -34,8 +35,13 @@ final class WishlistController extends AbstractController
 
         if ($this->isCsrfTokenValid('wishlist', $request->getPayload()->getString('_token')) && !$wishlist->existsFor($user, $product)) {
             $entityManager->persist((new WishlistItem())->setOwner($user)->setProduct($product)->setCreatedAt(new \DateTimeImmutable()));
-            $entityManager->flush();
-            $this->addFlash('success', 'Added to your wishlist.');
+
+            try {
+                $entityManager->flush();
+                $this->addFlash('success', 'Added to your wishlist.');
+            } catch (UniqueConstraintViolationException) {
+                // A double click; the first request already saved it.
+            }
         }
 
         return $this->redirectToRoute('app_wishlist', [], Response::HTTP_SEE_OTHER);
