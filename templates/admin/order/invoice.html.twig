@@ -16,7 +16,7 @@
 
     {{ include('admin/order/invoice_lines.html.twig') }}
 
-    <p>Payment: {{ order.paymentMethod|upper }} ({{ order.paymentStatus }})</p>
+    {% if order.payment %}<p>Payment: {{ order.payment.method|upper }} ({{ order.payment.status }})</p>{% endif %}
 
     <p><a href="{{ path('app_admin_order_show', {id: order.id}) }}">Back to order</a></p>
 {% endblock %}

@@ -8,13 +8,14 @@
     <p>
         <a href="{{ path('app_admin_order_index') }}">Back to orders</a> |
         <a href="{{ path('app_admin_order_invoice', {id: order.id}) }}">Invoice</a>
+        {% if order.payment %}| <a href="{{ path('app_admin_payment_show', {id: order.payment.id}) }}">Payment details</a>{% endif %}
     </p>
 
     <ul>
         <li>Status: {{ order.status|capitalize }}</li>
         <li>Customer: {{ order.customer.fullName }} ({{ order.customer.email }})</li>
         <li>Placed: {{ order.createdAt|date('Y-m-d H:i') }}</li>
-        <li>Payment: {{ order.paymentMethod|upper }}, {{ order.paymentStatus }}{% if order.paidAt %} on {{ order.paidAt|date('Y-m-d H:i') }}{% endif %}</li>
+        {% if order.payment %}<li>Payment: {{ order.payment.method|upper }}, {{ order.payment.status }}{% if order.payment.paidAt %} on {{ order.payment.paidAt|date('Y-m-d H:i') }}{% endif %}</li>{% endif %}
         <li>Shipping: {{ order.shippingMethod|capitalize }}</li>
         {% if order.deliveredAt %}<li>Delivered: {{ order.deliveredAt|date('Y-m-d H:i') }}</li>{% endif %}
         {% if order.cancelReason %}<li>Cancel reason: {{ order.cancelReason }}</li>{% endif %}
@@ -37,4 +38,20 @@
             <button>Cancel order</button>
         </form>
     {% endif %}
+
+    <h2>Status history</h2>
+    <table>
+        <thead><tr><th>When</th><th>From</th><th>To</th><th>By</th><th>Note</th></tr></thead>
+        <tbody>
+            {% for row in history %}
+                <tr>
+                    <td>{{ row.createdAt|date('Y-m-d H:i:s') }}</td>
+                    <td>{{ row.fromStatus }}</td>
+                    <td>{{ row.toStatus }}</td>
+                    <td>{{ row.changedBy ? row.changedBy.email }}</td>
+                    <td>{{ row.note }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
