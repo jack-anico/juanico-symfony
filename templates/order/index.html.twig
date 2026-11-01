@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Orders{% endblock %}
+
+{% block body %}
+    <h1>My Orders</h1>
+
+    <p>
+        <a href="{{ path('app_order_index') }}">All</a>
+        {% for status in statuses %}
+            | <a href="{{ path('app_order_index', {status: status}) }}">{{ status|capitalize }}</a>
+        {% endfor %}
+    </p>
+
+    <table>
+        <thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
+        <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td><a href="{{ path('app_order_show', {id: order.id}) }}">{{ order.orderNumber }}</a></td>
+                    <td>{{ order.createdAt|date('Y-m-d H:i') }}</td>
+                    <td>{{ order.status|capitalize }}</td>
+                    <td>PHP {{ order.total }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">No orders found</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

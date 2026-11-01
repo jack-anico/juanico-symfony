@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Addresses{% endblock %}
+
+{% block body %}
+    <h1>My Addresses</h1>
+
+    <p><a href="{{ path('app_address_new') }}">Add a new address</a></p>
+
+    <table>
+        <thead><tr><th>Label</th><th>Recipient</th><th>Address</th><th>Phone</th><th>Default</th><th></th></tr></thead>
+        <tbody>
+            {% for address in addresses %}
+                <tr>
+                    <td>{{ address.label }}</td>
+                    <td>{{ address.recipient }}</td>
+                    <td>{{ address.line1 }}, {{ address.city }}, {{ address.province }} {{ address.postalCode }}</td>
+                    <td>{{ address.phone }}</td>
+                    <td>{{ address.isDefault ? 'Yes' : 'No' }}</td>
+                    <td>
+                        <a href="{{ path('app_address_show', {id: address.id}) }}">View</a>
+                        <a href="{{ path('app_address_edit', {id: address.id}) }}">Edit</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">You have no saved addresses</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

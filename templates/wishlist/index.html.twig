@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Wishlist{% endblock %}
+
+{% block body %}
+    <h1>My Wishlist</h1>
+
+    <ul>
+        {% for item in items %}
+            <li>
+                <a href="{{ path('app_product_show', {slug: item.product.slug}) }}">{{ item.product.name }}</a>: PHP {{ item.product.effectivePrice }}
+                <form method="post" action="{{ path('app_wishlist_remove', {id: item.id}) }}" style="display:inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('wishlist') }}">
+                    <button>Remove</button>
+                </form>
+            </li>
+        {% else %}
+            <li>Your wishlist is empty</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

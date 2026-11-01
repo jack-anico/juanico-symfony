@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block body %}
+    <h1>{{ product.name }}</h1>
+
+    {% if product.image %}
+        <img src="{{ asset('uploads/products/' ~ product.image) }}" alt="{{ product.name }}" width="300">
+    {% endif %}
+
+    <ul>
+        <li>
+            Price:
+            {% if product.salePrice %}<s>PHP {{ product.price }}</s>{% endif %}
+            PHP {{ product.effectivePrice }} / {{ product.unit }}
+        </li>
+        <li>SKU: {{ product.sku }}</li>
+        <li>Category: {{ product.category.name }}</li>
+        {% if product.brand %}<li>Brand: {{ product.brand.name }}</li>{% endif %}
+        <li>{{ product.stock > 0 ? product.stock ~ ' in stock' : 'Out of stock' }}</li>
+        <li>Rating: {{ average_rating is null ? 'No ratings yet' : average_rating|number_format(1) ~ ' / 5' }}</li>
+    </ul>
+
+    <p>{{ product.description|nl2br }}</p>
+
+    {% if product.specifications %}
+        <h2>Specifications</h2>
+        <ul>
+            {% for name, value in product.specifications %}
+                <li>{{ name }}: {{ value is iterable ? value|json_encode : value }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if app.user %}
+        {% if product.stock > 0 %}
+            <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+                <label>Quantity <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}"></label>
+                <button>Add to cart</button>
+            </form>
+        {% endif %}
+        {% if not in_wishlist %}
+            <form method="post" action="{{ path('app_wishlist_add', {id: product.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('wishlist') }}">
+                <button>Add to wishlist</button>
+            </form>
+        {% endif %}
+    {% else %}
+        <p><a href="{{ path('app_login') }}">Log in</a> to buy this product.</p>
+    {% endif %}
+
+    <h2>Reviews</h2>
+    {% for review in reviews %}
+        <p><strong>{{ review.rating }}/5</strong> by {{ review.author.fullName }}: {{ review.comment }}</p>
+    {% else %}
+        <p>No reviews yet.</p>
+    {% endfor %}
+
+    {% if review_form %}
+        <h3>Write a review</h3>
+        {{ form_start(review_form) }}
+            {{ form_widget(review_form) }}
+            <button>Submit review</button>
+        {{ form_end(review_form) }}
+    {% endif %}
+
+    {% if related %}
+        <h2>Related products</h2>
+        <ul>
+            {% for item in related %}
+                <li><a href="{{ path('app_product_show', {slug: item.slug}) }}">{{ item.name }}</a>: PHP {{ item.effectivePrice }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

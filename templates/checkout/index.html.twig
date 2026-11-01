@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block body %}
+    <h1>Checkout</h1>
+
+    <ul>
+        {% for item in items %}
+            <li>{{ item.quantity }} x {{ item.product.name }}: PHP {{ (item.quantity * item.product.effectivePrice)|number_format(2, '.', '') }}</li>
+        {% endfor %}
+    </ul>
+    <p>Subtotal: PHP {{ subtotal }}. Shipping and discounts are applied when you place the order.</p>
+
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button>Place order</button>
+    {{ form_end(form) }}
+
+    <p><a href="{{ path('app_address_new') }}">Add a new address</a></p>
+{% endblock %}

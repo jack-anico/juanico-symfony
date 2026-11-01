@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Your Cart{% endblock %}
+
+{% block body %}
+    <h1>Your Cart</h1>
+
+    {% if items %}
+        <table>
+            <thead><tr><th>Product</th><th>Price</th><th>Quantity</th><th>Line total</th><th></th></tr></thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td><a href="{{ path('app_product_show', {slug: item.product.slug}) }}">{{ item.product.name }}</a></td>
+                        <td>PHP {{ item.product.effectivePrice }}</td>
+                        <td>
+                            <form method="post" action="{{ path('app_cart_update', {id: item.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}">
+                                <button>Update</button>
+                            </form>
+                        </td>
+                        <td>PHP {{ (item.quantity * item.product.effectivePrice)|number_format(2, '.', '') }}</td>
+                        <td>
+                            <form method="post" action="{{ path('app_cart_remove', {id: item.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+                                <button>Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p>Subtotal: PHP {{ subtotal }}</p>
+        <p><a href="{{ path('app_checkout') }}">Proceed to checkout</a></p>
+    {% else %}
+        <p>Your cart is empty. <a href="{{ path('app_catalog') }}">Browse the catalog</a>.</p>
+    {% endif %}
+{% endblock %}

@@ -70,6 +70,12 @@ class Product
     #[ORM\ManyToOne]
     private ?Brand $brand = null;
 
+    /** The price a customer pays right now, as a decimal string. */
+    public function getEffectivePrice(): ?string
+    {
+        return $this->salePrice ?? $this->price;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

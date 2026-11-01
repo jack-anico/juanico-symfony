@@ -19,9 +19,23 @@
         {% endif %}
     </head>
     <body>
-        {% if app.user %}
-            <p>{{ app.user.userIdentifier }} | <a href="{{ logout_path() }}">Log out</a></p>
-        {% endif %}
+        <nav>
+            <a href="{{ path('app_home') }}">Home</a> |
+            <a href="{{ path('app_catalog') }}">Catalog</a> |
+            <a href="{{ path('app_material_calculator') }}">Material calculator</a> |
+            <a href="{{ path('app_contact') }}">Contact</a> |
+            {% if app.user %}
+                <a href="{{ path('app_cart') }}">Cart</a> |
+                <a href="{{ path('app_wishlist') }}">Wishlist</a> |
+                <a href="{{ path('app_order_index') }}">My orders</a> |
+                <a href="{{ path('app_account') }}">Account</a> |
+                {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}">Admin</a> |{% endif %}
+                {{ app.user.userIdentifier }} <a href="{{ logout_path() }}">Log out</a>
+            {% else %}
+                <a href="{{ path('app_login') }}">Log in</a> |
+                <a href="{{ path('app_register') }}">Register</a>
+            {% endif %}
+        </nav>
         {% for type, messages in app.flashes(['success', 'error']) %}
             {% for message in messages %}
                 <p class="flash flash-{{ type }}">{{ message }}</p>

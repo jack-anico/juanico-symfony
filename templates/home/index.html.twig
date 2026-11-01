@@ -1,20 +1,35 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello HomeController!{% endblock %}
+{% block title %}Juanico Hardware{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <h1>Juanico Hardware</h1>
+    <p>Carpentry tools and building materials.</p>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
+    <h2>Shop by category</h2>
     <ul>
-        <li>Your controller at <code>/var/www/html/src/Controller/HomeController.php</code></li>
-        <li>Your template at <code>/var/www/html/templates/home/index.html.twig</code></li>
+        {% for category in categories %}
+            <li><a href="{{ path('app_catalog', {category: category.id}) }}">{{ category.name }}</a></li>
+        {% else %}
+            <li>Categories are coming soon</li>
+        {% endfor %}
     </ul>
-</div>
+
+    <h2>Featured</h2>
+    <ul>
+        {% for product in featured %}
+            <li><a href="{{ path('app_product_show', {slug: product.slug}) }}">{{ product.name }}</a>: PHP {{ product.effectivePrice }}</li>
+        {% else %}
+            <li>No featured products yet</li>
+        {% endfor %}
+    </ul>
+
+    <h2>On sale</h2>
+    <ul>
+        {% for product in on_sale %}
+            <li><a href="{{ path('app_product_show', {slug: product.slug}) }}">{{ product.name }}</a>: <s>PHP {{ product.price }}</s> PHP {{ product.salePrice }}</li>
+        {% else %}
+            <li>No sales right now</li>
+        {% endfor %}
+    </ul>
 {% endblock %}

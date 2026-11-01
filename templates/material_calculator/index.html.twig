@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Material Calculator{% endblock %}
+
+{% block body %}
+    <h1>Material Calculator</h1>
+
+    <p>These are estimates. Please check with our staff for large projects.</p>
+
+    {% if result %}<p id="result"><strong>{{ result }}</strong></p>{% endif %}
+    {% if invalid %}<p id="result">Please enter values greater than zero.</p>{% endif %}
+
+    <h2>Paint</h2>
+    <form method="get">
+        <input type="hidden" name="type" value="paint">
+        <label>Wall area (square meters) <input type="number" name="area" min="0.01" step="0.01" required></label>
+        <label>Coats <input type="number" name="coats" value="2" min="1" required></label>
+        <button>Calculate paint</button>
+    </form>
+
+    <h2>Tiles</h2>
+    <form method="get">
+        <input type="hidden" name="type" value="tile">
+        <label>Floor area (square meters) <input type="number" name="area" min="0.01" step="0.01" required></label>
+        <label>Tile length (cm) <input type="number" name="tile_length" min="0.1" step="0.1" required></label>
+        <label>Tile width (cm) <input type="number" name="tile_width" min="0.1" step="0.1" required></label>
+        <button>Calculate tiles</button>
+    </form>
+
+    <h2>Lumber</h2>
+    <form method="get">
+        <input type="hidden" name="type" value="lumber">
+        <label>Total length needed (meters) <input type="number" name="total_length" min="0.01" step="0.01" required></label>
+        <label>Length of each piece (meters) <input type="number" name="piece_length" min="0.01" step="0.01" required></label>
+        <button>Calculate lumber</button>
+    </form>
+{% endblock %}

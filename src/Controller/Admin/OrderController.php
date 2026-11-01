@@ -64,8 +64,11 @@ final class OrderController extends AbstractController
         } elseif ('' === $reason) {
             $this->addFlash('error', 'Please give a reason for cancelling.');
         } else {
-            $order->setStatus(Order::STATUS_CANCELLED)->setCancelReason($reason);
-            $entityManager->flush();
+            // The transaction keeps the stock returned by OrderStockSubscriber tied to the status change.
+            $entityManager->wrapInTransaction(static function () use ($order, $reason, $entityManager): void {
+                $order->setStatus(Order::STATUS_CANCELLED)->setCancelReason($reason);
+                $entityManager->flush();
+            });
             $this->addFlash('success', 'Order cancelled.');
         }
 

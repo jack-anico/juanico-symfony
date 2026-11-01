@@ -23,6 +23,17 @@ class Order
     public const PAYMENT_PAID = 'paid';
     public const PAYMENT_REFUNDED = 'refunded';
 
+    public const PAYMENT_COD = 'cod';
+    public const PAYMENT_GCASH = 'gcash';
+    public const PAYMENT_BANK = 'bank';
+
+    /** Flat shipping fee in pesos for each shipping method. */
+    public const SHIPPING_FEES = [
+        'standard' => '100.00',
+        'express' => '250.00',
+        'pickup' => '0.00',
+    ];
+
     /** Allowed next statuses. Orders can only be cancelled before packing. */
     public const TRANSITIONS = [
         self::STATUS_PENDING => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
