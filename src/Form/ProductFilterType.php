@@ -42,8 +42,9 @@ class ProductFilterType extends AbstractType
             ->add('maxPrice', NumberType::class, ['required' => false, 'input' => 'string', 'scale' => 2])
             ->add('sort', ChoiceType::class, [
                 'required' => false,
-                'placeholder' => 'Newest',
+                'placeholder' => 'Recommended',
                 'choices' => [
+                    'Newest' => 'newest',
                     'Price: low to high' => 'price_asc',
                     'Price: high to low' => 'price_desc',
                     'Name' => 'name',

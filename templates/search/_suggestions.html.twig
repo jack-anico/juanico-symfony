@@ -1,0 +1,30 @@
+{% if categories %}
+    <p class="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">Categories</p>
+    {% for category in categories %}
+        <a role="option" aria-selected="false" class="search-option font-bold text-navy-900" href="{{ path('app_catalog', {category: category.id}) }}">{{ category.name }}</a>
+    {% endfor %}
+{% endif %}
+{% if products %}
+    <p class="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">Products</p>
+    {% for product in products %}
+        <a role="option" aria-selected="false" class="search-option" href="{{ path('app_product_show', {slug: product.slug}) }}">
+            <span class="grid size-10 shrink-0 place-items-center overflow-hidden rounded-md border border-slate-100 bg-white text-navy-200">
+                {% if product.image %}
+                    <img alt="" class="size-full object-contain" loading="lazy" src="{{ asset('uploads/products/' ~ product.image) }}" width="40" height="40">
+                {% else %}
+                    {{ include('_partials/icon.html.twig', {name: 'tools', class: 'size-5'}) }}
+                {% endif %}
+            </span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate font-bold text-navy-950">{{ product.name }}</span>
+                {% if product.brand %}<span class="block truncate text-xs text-slate-500">{{ product.brand.name }}</span>{% endif %}
+            </span>
+            <span class="shrink-0 font-bold tabular-nums text-navy-950">{{ product.effectivePrice|peso }}</span>
+        </a>
+    {% endfor %}
+    <a role="option" aria-selected="false" class="search-option justify-center border-t border-slate-100 font-bold text-navy-700" href="{{ path('app_catalog', {q: q}) }}">See all results for "{{ q }}"</a>
+{% elseif correction %}
+    <a role="option" aria-selected="false" class="search-option" href="{{ path('app_catalog', {q: correction}) }}">Did you mean&nbsp;<strong class="text-navy-800">{{ correction }}</strong>?</a>
+{% elseif not categories %}
+    <p class="p-4 text-center text-sm text-slate-500">No products match "{{ q }}"</p>
+{% endif %}

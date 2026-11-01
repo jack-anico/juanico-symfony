@@ -70,4 +70,26 @@ class CategoryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getArrayResult();
     }
+
+    /**
+     * Active categories for the search box's live suggestions.
+     *
+     * @return Category[]
+     */
+    public function findActiveMatching(string $q, int $limit = 3): array
+    {
+        $q = trim($q);
+        if ('' === $q) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.isActive = true')
+            ->andWhere('c.name LIKE :q')
+            ->setParameter('q', '%'.addcslashes($q, '%_\\').'%')
+            ->orderBy('c.name', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }
