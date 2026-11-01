@@ -43,11 +43,12 @@
                 <nav class="hidden items-center gap-1 lg:flex">
                     {% for item in nav %}<a class="rounded-lg px-3 py-2 text-sm font-bold text-navy-900 hover:bg-navy-50" href="{{ item.url }}">{{ item.label }}</a>{% endfor %}
                 </nav>
-                <form action="{{ path('app_catalog') }}" method="get" role="search" class="relative ml-auto hidden max-w-md flex-1 md:block">
+                <form action="{{ path('app_catalog') }}" method="get" role="search" class="relative ml-auto hidden max-w-md flex-1 md:block" data-controller="search-suggest" data-search-suggest-url-value="{{ path('app_search_suggest') }}" data-action="click@window->search-suggest#clickOutside">
                     <label><span class="sr-only">Search products</span>
                         {{ include('_partials/icon.html.twig', {name: 'search', class: 'absolute left-4 top-3 size-5 text-slate-400'}) }}
-                        <input class="search-input" name="q" type="search" placeholder="What are you building today?" value="{{ app.request.query.get('q') }}">
+                        <input class="search-input" name="q" type="search" placeholder="What are you building today?" maxlength="100" value="{{ app.request.query.get('q') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-list-desktop" data-search-suggest-target="input" data-action="input->search-suggest#type keydown->search-suggest#key">
                     </label>
+                    <div id="search-list-desktop" role="listbox" aria-label="Search suggestions" class="search-panel hidden" data-search-suggest-target="panel"></div>
                 </form>
                 <div class="ml-auto flex items-center gap-1 md:ml-0">
                     {% if app.user %}
@@ -72,11 +73,12 @@
                     </a>
                 </div>
             </div>
-            <form action="{{ path('app_catalog') }}" method="get" role="search" class="border-t border-slate-100 p-3 md:hidden">
+            <form action="{{ path('app_catalog') }}" method="get" role="search" class="relative border-t border-slate-100 p-3 md:hidden" data-controller="search-suggest" data-search-suggest-url-value="{{ path('app_search_suggest') }}" data-action="click@window->search-suggest#clickOutside">
                 <label class="relative block">
                     {{ include('_partials/icon.html.twig', {name: 'search', class: 'absolute left-4 top-3 size-5 text-slate-400'}) }}
-                    <input class="search-input" name="q" type="search" aria-label="Search products" placeholder="Search tools, paint and more" value="{{ app.request.query.get('q') }}">
+                    <input class="search-input" name="q" type="search" aria-label="Search products" placeholder="Search tools, paint and more" maxlength="100" value="{{ app.request.query.get('q') }}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-list-mobile" data-search-suggest-target="input" data-action="input->search-suggest#type keydown->search-suggest#key">
                 </label>
+                <div id="search-list-mobile" role="listbox" aria-label="Search suggestions" class="search-panel inset-x-3 hidden" data-search-suggest-target="panel"></div>
             </form>
         </header>
 
