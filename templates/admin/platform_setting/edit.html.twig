@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit PlatformSetting{% endblock %}
+
+{% block body %}
+    <h1>Edit PlatformSetting</h1>
+
+    {{ include('admin/platform_setting/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_admin_platform_setting_index') }}">back to list</a>
+
+    {{ include('admin/platform_setting/_delete_form.html.twig') }}
+{% endblock %}
