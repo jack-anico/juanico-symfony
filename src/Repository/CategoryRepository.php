@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Payment;
 use App\Entity\Category;
 use App\Entity\Order;
 use App\Entity\OrderItem;
@@ -57,12 +58,13 @@ class CategoryRepository extends ServiceEntityRepository
             ->join(OrderItem::class, 'i', 'WITH', 'i.product = p')
             ->join('i.order', 'o')
             ->andWhere('o.createdAt BETWEEN :from AND :to')
-            ->andWhere('o.status <> :cancelled')
-            ->andWhere('o.paymentStatus <> :refunded')
+            ->join('o.payment', 'pay')
+            ->andWhere('o.status = :delivered')
+            ->andWhere('pay.status = :paid')
             ->setParameter('from', $from)
             ->setParameter('to', $to)
-            ->setParameter('cancelled', Order::STATUS_CANCELLED)
-            ->setParameter('refunded', Order::PAYMENT_REFUNDED)
+            ->setParameter('delivered', Order::STATUS_DELIVERED)
+            ->setParameter('paid', Payment::STATUS_PAID)
             ->groupBy('c.id', 'c.name')
             ->orderBy('revenue', 'DESC')
             ->getQuery()

@@ -16,28 +16,23 @@ class PlatformSettingRepository extends ServiceEntityRepository
         parent::__construct($registry, PlatformSetting::class);
     }
 
-//    /**
-//     * @return PlatformSetting[] Returns an array of PlatformSetting objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('p.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /** A missing setting is a deployment error, so it fails instead of guessing a money value. */
+    public function getValue(string $key): string
+    {
+        $setting = $this->findOneBy(['settingKey' => $key])
+            ?? throw new \RuntimeException(sprintf('Platform setting "%s" is missing. Load PlatformSettingFixtures.', $key));
 
-//    public function findOneBySomeField($value): ?PlatformSetting
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        return (string) $setting->getSettingValue();
+    }
+
+    /** @return numeric-string A two-decimal string for bcmath */
+    public function getDecimal(string $key): string
+    {
+        return bcadd($this->getValue($key), '0', 2);
+    }
+
+    public function getInt(string $key): int
+    {
+        return (int) $this->getValue($key);
+    }
 }

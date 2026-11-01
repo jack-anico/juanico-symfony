@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\OrderStatusHistory;
+use App\Entity\Payment;
 use App\Entity\Address;
 use App\Entity\Order;
 use App\Entity\User;
@@ -11,7 +13,7 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * Revenue figures exclude cancelled and refunded orders. Date ranges are inclusive.
+ * Revenue counts only delivered orders with a paid payment. Date ranges are inclusive.
  *
  * @extends ServiceEntityRepository<Order>
  */
@@ -78,6 +80,17 @@ class OrderRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findByIdempotencyKey(string $key): ?Order
+    {
+        return $this->findOneBy(['idempotencyKey' => $key]);
+    }
+
+    /** @return OrderStatusHistory[] Oldest first; id breaks ties between rows from the same second */
+    public function statusHistory(Order $order): array
+    {
+        return $this->getEntityManager()->getRepository(OrderStatusHistory::class)->findForOrder($order);
+    }
+
     public function isAddressUsed(Address $address): bool
     {
         return $this->count(['shippingAddress' => $address]) > 0;
@@ -107,16 +120,17 @@ class OrderRepository extends ServiceEntityRepository
     public function salesByDay(\DateTimeImmutable $from, \DateTimeImmutable $to): array
     {
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative(
-            'SELECT DATE(created_at) AS day, COUNT(*) AS orders, SUM(total) AS revenue
-             FROM `order`
-             WHERE created_at BETWEEN :from AND :to AND status <> :cancelled AND payment_status <> :refunded
-             GROUP BY DATE(created_at)
+            'SELECT DATE(o.created_at) AS day, COUNT(*) AS orders, SUM(o.total) AS revenue
+             FROM `order` o
+             JOIN payment p ON p.order_id = o.id
+             WHERE o.created_at BETWEEN :from AND :to AND o.status = :delivered AND p.status = :paid
+             GROUP BY DATE(o.created_at)
              ORDER BY day ASC',
             [
                 'from' => $from->format('Y-m-d H:i:s'),
                 'to' => $to->format('Y-m-d H:i:s'),
-                'cancelled' => Order::STATUS_CANCELLED,
-                'refunded' => Order::PAYMENT_REFUNDED,
+                'delivered' => Order::STATUS_DELIVERED,
+                'paid' => Payment::STATUS_PAID,
             ],
         );
 
@@ -149,11 +163,12 @@ class OrderRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('o')
             ->andWhere('o.createdAt BETWEEN :from AND :to')
-            ->andWhere('o.status <> :cancelled')
-            ->andWhere('o.paymentStatus <> :refunded')
+            ->join('o.payment', 'pay')
+            ->andWhere('o.status = :delivered')
+            ->andWhere('pay.status = :paid')
             ->setParameter('from', $from)
             ->setParameter('to', $to)
-            ->setParameter('cancelled', Order::STATUS_CANCELLED)
-            ->setParameter('refunded', Order::PAYMENT_REFUNDED);
+            ->setParameter('delivered', Order::STATUS_DELIVERED)
+            ->setParameter('paid', Payment::STATUS_PAID);
     }
 }

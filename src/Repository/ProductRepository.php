@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use Doctrine\DBAL\LockMode;
+use App\Entity\Payment;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\Product;
@@ -176,30 +178,23 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Removes stock in one atomic statement, so two buyers cannot both take the last unit.
+     * Locks product rows until the current transaction ends and reloads their latest values.
+     * Sorting by id means two transactions always lock in the same order, which prevents deadlocks.
      *
-     * @return bool False when there is not enough stock; nothing changes in that case
+     * @param int[] $ids
+     *
+     * @return Product[]
      */
-    public function decrementStock(Product $product, int $quantity): bool
+    public function findForUpdate(array $ids): array
     {
-        return 1 === $this->getEntityManager()->createQuery(sprintf(
-            'UPDATE %s p SET p.stock = p.stock - :quantity WHERE p.id = :id AND p.stock >= :quantity',
-            Product::class,
-        ))
-            ->setParameter('quantity', $quantity)
-            ->setParameter('id', $product->getId())
-            ->execute();
-    }
-
-    public function incrementStock(Product $product, int $quantity): void
-    {
-        $this->getEntityManager()->createQuery(sprintf(
-            'UPDATE %s p SET p.stock = p.stock + :quantity WHERE p.id = :id',
-            Product::class,
-        ))
-            ->setParameter('quantity', $quantity)
-            ->setParameter('id', $product->getId())
-            ->execute();
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('p.id', 'ASC')
+            ->getQuery()
+            ->setLockMode(LockMode::PESSIMISTIC_WRITE)
+            ->setHint(Query::HINT_REFRESH, true)
+            ->getResult();
     }
 
     /**
@@ -214,12 +209,13 @@ class ProductRepository extends ServiceEntityRepository
             ->join(OrderItem::class, 'i', 'WITH', 'i.product = p')
             ->join('i.order', 'o')
             ->andWhere('o.createdAt BETWEEN :from AND :to')
-            ->andWhere('o.status <> :cancelled')
-            ->andWhere('o.paymentStatus <> :refunded')
+            ->join('o.payment', 'pay')
+            ->andWhere('o.status = :delivered')
+            ->andWhere('pay.status = :paid')
             ->setParameter('from', $from)
             ->setParameter('to', $to)
-            ->setParameter('cancelled', Order::STATUS_CANCELLED)
-            ->setParameter('refunded', Order::PAYMENT_REFUNDED)
+            ->setParameter('delivered', Order::STATUS_DELIVERED)
+            ->setParameter('paid', Payment::STATUS_PAID)
             ->groupBy('p.id', 'p.name', 'p.sku')
             ->orderBy('revenue', 'DESC')
             ->getQuery()

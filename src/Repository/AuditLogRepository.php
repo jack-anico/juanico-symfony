@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\AuditLog;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +17,21 @@ class AuditLogRepository extends ServiceEntityRepository
         parent::__construct($registry, AuditLog::class);
     }
 
-//    /**
-//     * @return AuditLog[] Returns an array of AuditLog objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('a.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /** @param array<string, mixed>|null $detail Queues the row; the caller's flush saves it with the audited change */
+    public function record(User $admin, string $action, string $entityType, int $entityId, ?array $detail = null): void
+    {
+        $this->getEntityManager()->persist((new AuditLog())
+            ->setAdmin($admin)
+            ->setAction($action)
+            ->setEntityType($entityType)
+            ->setEntityId($entityId)
+            ->setDetail($detail)
+            ->setCreatedAt(new \DateTimeImmutable()));
+    }
 
-//    public function findOneBySomeField($value): ?AuditLog
-//    {
-//        return $this->createQueryBuilder('a')
-//            ->andWhere('a.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /** @return AuditLog[] Newest first */
+    public function findRecent(int $limit = 100): array
+    {
+        return $this->findBy([], ['createdAt' => 'DESC', 'id' => 'DESC'], $limit);
+    }
 }

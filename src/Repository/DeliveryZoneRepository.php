@@ -16,28 +16,26 @@ class DeliveryZoneRepository extends ServiceEntityRepository
         parent::__construct($registry, DeliveryZone::class);
     }
 
-//    /**
-//     * @return DeliveryZone[] Returns an array of DeliveryZone objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('d.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    /**
+     * First active zone covering the province or, because zones may list cities, the city.
+     * Matching happens in PHP because DQL has no JSON functions; the zone list is small.
+     */
+    public function findActiveForProvince(string $province, ?string $city = null): ?DeliveryZone
+    {
+        $wanted = array_filter([$this->normalize($province), null === $city ? null : $this->normalize($city)]);
 
-//    public function findOneBySomeField($value): ?DeliveryZone
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        foreach ($this->findBy(['isActive' => true], ['id' => 'ASC']) as $zone) {
+            $covered = array_map(fn (string $place): string => $this->normalize($place), $zone->getProvinces());
+            if ([] !== array_intersect($wanted, $covered)) {
+                return $zone;
+            }
+        }
+
+        return null;
+    }
+
+    private function normalize(string $place): string
+    {
+        return mb_strtolower(trim($place));
+    }
 }
