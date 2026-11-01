@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Platform Settings{% endblock %}
+
+{% block body %}
+    <h1>Platform Settings</h1>
+
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
+
+    <table>
+        <thead><tr><th>Setting</th><th>Value</th><th>Description</th><th></th></tr></thead>
+        <tbody>
+            {% for setting in platform_settings %}
+                <tr>
+                    <td>{{ setting.settingKey }}</td>
+                    <td>{{ setting.settingValue }}</td>
+                    <td>{{ setting.description }}</td>
+                    <td><a href="{{ path('app_admin_platform_setting_edit', {id: setting.id}) }}">Edit</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">No settings found. Load PlatformSettingFixtures.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

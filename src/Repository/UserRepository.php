@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Payment;
 use App\Entity\Order;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -32,6 +33,16 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $user->setPassword($newHashedPassword);
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
+    }
+
+    /** @return User[] */
+    public function findAdmins(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.roles LIKE :admin')
+            ->setParameter('admin', '%ROLE_ADMIN%')
+            ->getQuery()
+            ->getResult();
     }
 
     /** New customer accounts in an inclusive date range; admins are not counted. */
@@ -69,10 +80,11 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $rows = $this->createQueryBuilder('u')
             ->select('u AS user', 'COUNT(o.id) AS orderCount', 'SUM(o.total) AS totalSpent')
             ->join(Order::class, 'o', 'WITH', 'o.customer = u')
-            ->andWhere('o.status <> :cancelled')
-            ->andWhere('o.paymentStatus <> :refunded')
-            ->setParameter('cancelled', Order::STATUS_CANCELLED)
-            ->setParameter('refunded', Order::PAYMENT_REFUNDED)
+            ->join('o.payment', 'pay')
+            ->andWhere('o.status = :delivered')
+            ->andWhere('pay.status = :paid')
+            ->setParameter('delivered', Order::STATUS_DELIVERED)
+            ->setParameter('paid', Payment::STATUS_PAID)
             ->groupBy('u.id')
             ->orderBy('totalSpent', 'DESC')
             ->setMaxResults($limit)

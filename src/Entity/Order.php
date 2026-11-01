@@ -19,20 +19,9 @@ class Order
     public const STATUS_DELIVERED = 'delivered';
     public const STATUS_CANCELLED = 'cancelled';
 
-    public const PAYMENT_UNPAID = 'unpaid';
-    public const PAYMENT_PAID = 'paid';
-    public const PAYMENT_REFUNDED = 'refunded';
-
-    public const PAYMENT_COD = 'cod';
-    public const PAYMENT_GCASH = 'gcash';
-    public const PAYMENT_BANK = 'bank';
-
-    /** Flat shipping fee in pesos for each shipping method. */
-    public const SHIPPING_FEES = [
-        'standard' => '100.00',
-        'express' => '250.00',
-        'pickup' => '0.00',
-    ];
+    public const SHIPPING_STANDARD = 'standard';
+    public const SHIPPING_EXPRESS = 'express';
+    public const SHIPPING_PICKUP = 'pickup';
 
     /** Allowed next statuses. Orders can only be cancelled before packing. */
     public const TRANSITIONS = [
@@ -55,17 +44,8 @@ class Order
     #[ORM\Column(length: 20)]
     private ?string $status = null;
 
-    #[ORM\Column(length: 30)]
-    private ?string $paymentMethod = null;
-
-    #[ORM\Column(length: 20)]
-    private ?string $paymentStatus = null;
-
     #[ORM\Column(length: 20)]
     private ?string $shippingMethod = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $paymentProof = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $cancelReason = null;
@@ -92,9 +72,6 @@ class Order
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $paidAt = null;
-
-    #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deliveredAt = null;
 
     #[ORM\ManyToOne]
@@ -113,6 +90,12 @@ class Order
      */
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', orphanRemoval: true)]
     private Collection $items;
+
+    #[ORM\Column(length: 36, unique: true)]
+    private ?string $idempotencyKey = null;
+
+    #[ORM\OneToOne(mappedBy: 'order', cascade: ['persist', 'remove'])]
+    private ?Payment $payment = null;
 
     public function __construct()
     {
@@ -153,30 +136,6 @@ class Order
         return $this;
     }
 
-    public function getPaymentMethod(): ?string
-    {
-        return $this->paymentMethod;
-    }
-
-    public function setPaymentMethod(string $paymentMethod): static
-    {
-        $this->paymentMethod = $paymentMethod;
-
-        return $this;
-    }
-
-    public function getPaymentStatus(): ?string
-    {
-        return $this->paymentStatus;
-    }
-
-    public function setPaymentStatus(string $paymentStatus): static
-    {
-        $this->paymentStatus = $paymentStatus;
-
-        return $this;
-    }
-
     public function getShippingMethod(): ?string
     {
         return $this->shippingMethod;
@@ -185,18 +144,6 @@ class Order
     public function setShippingMethod(string $shippingMethod): static
     {
         $this->shippingMethod = $shippingMethod;
-
-        return $this;
-    }
-
-    public function getPaymentProof(): ?string
-    {
-        return $this->paymentProof;
-    }
-
-    public function setPaymentProof(?string $paymentProof): static
-    {
-        $this->paymentProof = $paymentProof;
 
         return $this;
     }
@@ -297,18 +244,6 @@ class Order
         return $this;
     }
 
-    public function getPaidAt(): ?\DateTimeImmutable
-    {
-        return $this->paidAt;
-    }
-
-    public function setPaidAt(?\DateTimeImmutable $paidAt): static
-    {
-        $this->paidAt = $paidAt;
-
-        return $this;
-    }
-
     public function getDeliveredAt(): ?\DateTimeImmutable
     {
         return $this->deliveredAt;
@@ -383,6 +318,35 @@ class Order
                 $item->setOrder(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIdempotencyKey(): ?string
+    {
+        return $this->idempotencyKey;
+    }
+
+    public function setIdempotencyKey(string $idempotencyKey): static
+    {
+        $this->idempotencyKey = $idempotencyKey;
+
+        return $this;
+    }
+
+    public function getPayment(): ?Payment
+    {
+        return $this->payment;
+    }
+
+    public function setPayment(Payment $payment): static
+    {
+        // set the owning side of the relation if necessary
+        if ($payment->getOrder() !== $this) {
+            $payment->setOrder($this);
+        }
+
+        $this->payment = $payment;
 
         return $this;
     }

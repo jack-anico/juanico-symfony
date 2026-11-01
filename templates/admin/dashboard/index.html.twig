@@ -14,7 +14,11 @@
         <a href="{{ path('app_admin_user_index') }}">Users</a> |
         <a href="{{ path('app_admin_review_index') }}">Reviews ({{ pending_reviews }} pending)</a> |
         <a href="{{ path('app_admin_inquiry_index') }}">Inquiries ({{ unresolved_inquiries }} open)</a> |
-        <a href="{{ path('app_admin_report') }}">Sales report</a>
+        <a href="{{ path('app_admin_report') }}">Sales report</a> |
+        <a href="{{ path('app_admin_payment_index') }}">Payments</a> |
+        <a href="{{ path('app_admin_delivery_zone_index') }}">Delivery zones</a> |
+        <a href="{{ path('app_admin_platform_setting_index') }}">Settings</a> |
+        <a href="{{ path('app_admin_audit_log_index') }}">Audit log</a>
     </nav>
 
     <form method="get">
@@ -23,9 +27,20 @@
         <button>Apply</button>
     </form>
 
+    <h2>Needs attention</h2>
+    <ul>
+        <li>Bank transfers to verify: {{ pending_bank_transfers }}</li>
+        <li>Delivered cash orders to record: {{ collectable_cod }}</li>
+        <li>Refunds due: {{ awaiting_refund }}</li>
+        {% for order in stale_pending_orders %}
+            <li>Pending over {{ escalation_hours }} hours: <a href="{{ path('app_admin_order_show', {id: order.id}) }}">{{ order.orderNumber }}</a></li>
+        {% endfor %}
+    </ul>
+
     <h2>Sales in this period</h2>
     <ul>
-        <li>Revenue: PHP {{ revenue }}</li>
+        <li>Revenue (delivered and paid): PHP {{ revenue }}</li>
+        <li>Payments received: PHP {{ total_paid }}</li>
         <li>Orders: {{ order_count }}</li>
         <li>Average order value: PHP {{ average_order_value }}</li>
         <li>New customers: {{ new_customers }}</li>
@@ -39,7 +54,7 @@
         <li>Active customers (30 days): {{ active_customers }}</li>
         <li>Abandoned carts (24 hours): {{ abandoned_carts }}</li>
         <li>Inventory value at cost: PHP {{ inventory_value }}</li>
-        <li>Pending orders older than 24 hours: {{ stale_pending_orders|length }}</li>
+        <li>Pending orders over {{ escalation_hours }} hours: {{ stale_pending_orders|length }}</li>
     </ul>
 
     <h2>Orders by status</h2>

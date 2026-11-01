@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Payment{% endblock %}
+
+{% block body %}
+    <h1>Payment for {{ payment.order.orderNumber }}</h1>
+
+    <p><a href="{{ path('app_admin_payment_index') }}">Back to payments</a></p>
+
+    <ul>
+        <li>Method: {{ payment.method|upper }}</li>
+        <li>Status: {{ payment.status|capitalize }}</li>
+        <li>Amount: PHP {{ payment.amount }}</li>
+        <li>Reference: {{ payment.reference }}</li>
+        <li>Paid: {{ payment.paidAt ? payment.paidAt|date('Y-m-d H:i') : 'Not paid' }}</li>
+        {% if payment.proofFile %}<li><a href="{{ asset('uploads/proofs/' ~ payment.proofFile) }}">View proof</a></li>{% endif %}
+    </ul>
+
+    <h2>History</h2>
+    <table>
+        <thead><tr><th>When</th><th>From</th><th>To</th><th>By</th><th>Note</th></tr></thead>
+        <tbody>
+            {% for row in history %}
+                <tr>
+                    <td>{{ row.createdAt|date('Y-m-d H:i:s') }}</td>
+                    <td>{{ row.fromStatus }}</td>
+                    <td>{{ row.toStatus }}</td>
+                    <td>{{ row.changedBy ? row.changedBy.email }}</td>
+                    <td>{{ row.note }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

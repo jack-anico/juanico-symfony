@@ -6,6 +6,8 @@ use App\Repository\CartItemRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\InquiryRepository;
 use App\Repository\OrderRepository;
+use App\Repository\PaymentRepository;
+use App\Repository\PlatformSettingRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ReviewRepository;
 use App\Repository\UserRepository;
@@ -27,21 +29,29 @@ final class DashboardController extends AbstractController
         ReviewRepository $reviews,
         InquiryRepository $inquiries,
         CartItemRepository $cartItems,
+        PaymentRepository $payments,
+        PlatformSettingRepository $settings,
     ): Response {
         $from = $this->parseDate($request->query->getString('from')) ?? new \DateTimeImmutable('-29 days midnight');
         $to = ($this->parseDate($request->query->getString('to')) ?? new \DateTimeImmutable('today'))->setTime(23, 59, 59);
+        $escalationHours = $settings->getInt('pending_order_escalation_hours');
 
         return $this->render('admin/dashboard/index.html.twig', [
             'from' => $from,
             'to' => $to,
             'revenue' => $orders->totalRevenueBetween($from, $to),
+            'total_paid' => $payments->totalPaidBetween($from, $to),
             'order_count' => $orders->countBetween($from, $to),
             'average_order_value' => $orders->averageOrderValue($from, $to),
             'new_customers' => $users->countNewBetween($from, $to),
             'sales_by_day' => $orders->salesByDay($from, $to),
             'revenue_by_category' => $categories->revenueByCategory($from, $to),
             'orders_by_status' => $orders->countByStatus(),
-            'stale_pending_orders' => $orders->findPendingOlderThan(24),
+            'escalation_hours' => $escalationHours,
+            'stale_pending_orders' => $orders->findPendingOlderThan($escalationHours),
+            'pending_bank_transfers' => count($payments->findPendingBankTransfers()),
+            'collectable_cod' => count($payments->findCollectableCod()),
+            'awaiting_refund' => count($payments->findAwaitingRefund()),
             'cancellation_rate' => $orders->cancellationRate(),
             'average_fulfillment_hours' => $orders->averageFulfillmentHours(),
             'repeat_customer_rate' => $users->repeatCustomerRate(),

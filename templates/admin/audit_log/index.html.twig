@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Audit Log{% endblock %}
+
+{% block body %}
+    <h1>Audit Log</h1>
+
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
+
+    <table>
+        <thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Record</th><th></th></tr></thead>
+        <tbody>
+            {% for entry in audit_logs %}
+                <tr>
+                    <td>{{ entry.createdAt|date('Y-m-d H:i:s') }}</td>
+                    <td>{{ entry.admin.email }}</td>
+                    <td>{{ entry.action }}</td>
+                    <td>{{ entry.entityType }} #{{ entry.entityId }}</td>
+                    <td><a href="{{ path('app_admin_audit_log_show', {id: entry.id}) }}">Details</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5">No entries yet</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

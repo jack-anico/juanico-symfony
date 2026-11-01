@@ -2,6 +2,12 @@
 
 namespace App\Tests;
 
+use App\Entity\PlatformSetting;
+use App\Entity\PaymentStatusHistory;
+use App\Entity\Payment;
+use App\Entity\OrderStatusHistory;
+use App\Entity\DeliveryZone;
+use App\Entity\AuditLog;
 use App\Entity\Address;
 use App\Entity\Brand;
 use App\Entity\CartItem;
@@ -34,6 +40,7 @@ class AdminModuleTest extends WebTestCase
         $this->client->disableReboot();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
         $this->purge();
+        $this->em->persist((new PlatformSetting())->setSettingKey('pending_order_escalation_hours')->setSettingValue('24'));
         $this->admin = $this->user('admin@example.test', ['ROLE_ADMIN']);
         $this->em->flush();
         $this->client->loginUser($this->admin);
@@ -49,7 +56,7 @@ class AdminModuleTest extends WebTestCase
     public static function adminPages(): iterable
     {
         foreach (['/admin', '/admin/product', '/admin/product/new', '/admin/category', '/admin/category/new', '/admin/brand', '/admin/brand/new',
-            '/admin/discount/code', '/admin/discount/code/new', '/admin/order', '/admin/user', '/admin/review', '/admin/inquiry', '/admin/report'] as $path) {
+            '/admin/discount/code', '/admin/discount/code/new', '/admin/order', '/admin/user', '/admin/review', '/admin/inquiry', '/admin/report', '/admin/payment', '/admin/delivery/zone', '/admin/delivery/zone/new', '/admin/platform/setting', '/admin/audit/log'] as $path) {
             yield $path => [$path];
         }
     }
@@ -77,7 +84,7 @@ class AdminModuleTest extends WebTestCase
     public function testDashboardShowsKpisAndLowStock(): void
     {
         $product = $this->product('Low Stock Saw', stock: 1, threshold: 5);
-        $this->order($this->admin, $product, total: '1234.50');
+        $this->order($this->admin, $product, status: Order::STATUS_DELIVERED, total: '1234.50', paymentStatus: Payment::STATUS_PAID);
         $this->em->flush();
 
         $this->client->request('GET', '/admin?from=not-a-date');
@@ -238,7 +245,6 @@ class AdminModuleTest extends WebTestCase
         $this->client->request('GET', '/admin/order/'.$order->getId());
         $this->client->submitForm('Save', [
             'order_status[status]' => Order::STATUS_DELIVERED,
-            'order_status[paymentStatus]' => Order::PAYMENT_PAID,
             'order_status[trackingNumber]' => 'TRK-1',
         ]);
         $this->assertResponseRedirects();
@@ -247,7 +253,6 @@ class AdminModuleTest extends WebTestCase
         $this->assertSame(Order::STATUS_DELIVERED, $order->getStatus());
         $this->assertSame('TRK-1', $order->getTrackingNumber());
         $this->assertNotNull($order->getDeliveredAt());
-        $this->assertNotNull($order->getPaidAt());
     }
 
     public function testOrderStatusCannotSkipSteps(): void
@@ -388,7 +393,7 @@ class AdminModuleTest extends WebTestCase
     public function testCsvExportNeutralizesFormulas(): void
     {
         $product = $this->product('=HYPERLINK("http://evil")');
-        $this->order($this->admin, $product);
+        $this->order($this->admin, $product, status: Order::STATUS_DELIVERED, paymentStatus: Payment::STATUS_PAID);
         $this->em->flush();
 
         ob_start();
@@ -414,9 +419,10 @@ class AdminModuleTest extends WebTestCase
     {
         $this->em->clear();
         foreach ([
+            AuditLog::class, PaymentStatusHistory::class, Payment::class, OrderStatusHistory::class,
             OrderItem::class, Order::class, CartItem::class, WishlistItem::class, Review::class,
             StockMovement::class, Address::class, DiscountCode::class, Product::class, Brand::class,
-            Inquiry::class, User::class,
+            Inquiry::class, DeliveryZone::class, PlatformSetting::class, User::class,
         ] as $class) {
             $this->em->createQuery('DELETE FROM '.$class)->execute();
         }
@@ -455,21 +461,25 @@ class AdminModuleTest extends WebTestCase
         return $product;
     }
 
-    private function order(User $customer, Product $product, string $status = Order::STATUS_PENDING, string $total = '100.00'): Order
+    private function order(User $customer, Product $product, string $status = Order::STATUS_PENDING, string $total = '100.00', string $paymentStatus = Payment::STATUS_PENDING): Order
     {
         $id = ++$this->sequence;
         $address = (new Address())->setLabel('Home')->setRecipient('Recipient')->setPhone('1')->setLine1('Line')->setCity('City')
             ->setProvince('Province')->setPostalCode('1000')->setIsDefault(false)->setOwner($customer);
         $this->em->persist($address);
 
-        $order = (new Order())->setOrderNumber('ORD-'.$id)->setStatus($status)->setPaymentMethod('cod')
-            ->setPaymentStatus(Order::PAYMENT_UNPAID)->setShippingMethod('standard')->setSubtotal($total)->setShippingFee('0.00')
+        $order = (new Order())->setOrderNumber('ORD-'.$id)->setIdempotencyKey('key-'.$id)->setStatus($status)
+            ->setShippingMethod('standard')->setSubtotal($total)->setShippingFee('0.00')
             ->setDiscount('0.00')->setTotal($total)->setCreatedAt(new \DateTimeImmutable())
             ->setCustomer($customer)->setShippingAddress($address);
         $line = (new OrderItem())->setProduct($product)->setQuantity(1)->setUnitPrice($total);
         $order->addItem($line);
         $this->em->persist($order);
         $this->em->persist($line);
+        $payment = (new Payment())->setOrder($order)->setMethod(Payment::METHOD_COD)->setStatus($paymentStatus)
+            ->setAmount($total)->setCreatedAt(new \DateTimeImmutable());
+        $order->setPayment($payment);
+        $this->em->persist($payment);
 
         return $order;
     }

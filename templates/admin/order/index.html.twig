@@ -18,7 +18,7 @@
                     <td>{{ order.createdAt|date('Y-m-d H:i') }}</td>
                     <td>{{ order.customer.fullName }}</td>
                     <td>{{ order.status|capitalize }}</td>
-                    <td>{{ order.paymentMethod|upper }} ({{ order.paymentStatus }})</td>
+                    <td>{{ order.payment ? order.payment.method|upper ~ ' (' ~ order.payment.status ~ ')' }}</td>
                     <td>PHP {{ order.total }}</td>
                 </tr>
             {% else %}

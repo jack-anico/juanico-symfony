@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Audit Entry{% endblock %}
+
+{% block body %}
+    <h1>Audit Entry</h1>
+
+    <p><a href="{{ path('app_admin_audit_log_index') }}">Back to audit log</a></p>
+
+    <ul>
+        <li>When: {{ audit_log.createdAt|date('Y-m-d H:i:s') }}</li>
+        <li>Admin: {{ audit_log.admin.email }}</li>
+        <li>Action: {{ audit_log.action }}</li>
+        <li>Record: {{ audit_log.entityType }} #{{ audit_log.entityId }}</li>
+        <li>Detail: {{ audit_log.detail ? audit_log.detail|json_encode }}</li>
+    </ul>
+{% endblock %}

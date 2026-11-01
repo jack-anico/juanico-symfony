@@ -3,55 +3,33 @@
 namespace App\EventSubscriber;
 
 use App\Entity\Order;
-use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
-use Doctrine\ORM\Event\OnFlushEventArgs;
-use Doctrine\ORM\Events;
+use App\Service\OrderTransitionService;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\EventDispatcher\GenericEvent;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 
 /**
- * Emails the customer when an order is placed or its status changes.
- * A mail failure is logged and never undoes the order change.
+ * Emails the customer after an order's status change has committed.
  */
-#[AsDoctrineListener(event: Events::onFlush)]
-#[AsDoctrineListener(event: Events::postFlush)]
-class OrderStatusMailSubscriber
+class OrderStatusMailSubscriber implements EventSubscriberInterface
 {
-    /** @var list<Order> */
-    private array $pending = [];
-
     public function __construct(
         private MailerInterface $mailer,
         private LoggerInterface $logger,
     ) {
     }
 
-    public function onFlush(OnFlushEventArgs $args): void
+    public function onStatusChanged(GenericEvent $event): void
     {
-        $unitOfWork = $args->getObjectManager()->getUnitOfWork();
+        /** @var Order $order */
+        $order = $event->getSubject();
 
-        foreach ($unitOfWork->getScheduledEntityInsertions() as $entity) {
-            if ($entity instanceof Order) {
-                $this->pending[] = $entity;
-            }
-        }
-        foreach ($unitOfWork->getScheduledEntityUpdates() as $entity) {
-            if ($entity instanceof Order && isset($unitOfWork->getEntityChangeSet($entity)['status'])) {
-                $this->pending[] = $entity;
-            }
-        }
-    }
-
-    public function postFlush(): void
-    {
-        $orders = $this->pending;
-        $this->pending = [];
-
-        foreach ($orders as $order) {
-            $email = (new Email())
+        try {
+            $this->mailer->send((new Email())
                 ->from(new Address('noreply@juanico.test', 'Juanico'))
                 ->to((string) $order->getCustomer()->getEmail())
                 ->subject(sprintf('Order %s: %s', $order->getOrderNumber(), ucfirst((string) $order->getStatus())))
@@ -61,16 +39,19 @@ class OrderStatusMailSubscriber
                     $order->getOrderNumber(),
                     $order->getStatus(),
                     $order->getTotal(),
-                ));
-
-            try {
-                $this->mailer->send($email);
-            } catch (TransportExceptionInterface $exception) {
-                $this->logger->error('Order email failed for {order}: {message}', [
-                    'order' => $order->getOrderNumber(),
-                    'message' => $exception->getMessage(),
-                ]);
-            }
+                )));
+        } catch (TransportExceptionInterface $exception) {
+            $this->logger->error('Order status email failed for {order}: {message}', [
+                'order' => $order->getOrderNumber(),
+                'message' => $exception->getMessage(),
+            ]);
         }
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            OrderTransitionService::EVENT_STATUS_CHANGED => 'onStatusChanged',
+        ];
     }
 }

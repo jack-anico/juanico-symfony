@@ -14,24 +14,20 @@ class OrderStatusType extends AbstractType
     {
         /** @var Order $order */
         $order = $options['data'];
+        $current = (string) $order->getStatus();
 
-        // Only the current status and valid next steps can be submitted.
+        // Unmapped, so only OrderTransitionService can change the status.
         // Cancelling has its own action because it requires a reason.
-        $statuses = array_diff(
-            [$order->getStatus(), ...(Order::TRANSITIONS[$order->getStatus()] ?? [])],
-            $order->getStatus() === Order::STATUS_CANCELLED ? [] : [Order::STATUS_CANCELLED],
-        );
+        $statuses = array_values(array_unique(array_filter(
+            [$current, ...(Order::TRANSITIONS[$current] ?? [])],
+            static fn (string $status): bool => Order::STATUS_CANCELLED !== $status || Order::STATUS_CANCELLED === $current,
+        )));
 
         $builder
             ->add('status', ChoiceType::class, [
+                'mapped' => false,
+                'data' => $current,
                 'choices' => array_combine(array_map('ucfirst', $statuses), $statuses),
-            ])
-            ->add('paymentStatus', ChoiceType::class, [
-                'choices' => [
-                    'Unpaid' => Order::PAYMENT_UNPAID,
-                    'Paid' => Order::PAYMENT_PAID,
-                    'Refunded' => Order::PAYMENT_REFUNDED,
-                ],
             ])
             ->add('trackingNumber', null, ['required' => false])
         ;

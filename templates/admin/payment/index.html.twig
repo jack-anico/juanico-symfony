@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Payments{% endblock %}
+
+{% macro action(payment, route, label, note) %}
+    <form method="post" action="{{ path(route, {id: payment.id}) }}" style="display:inline">
+        <input type="hidden" name="_token" value="{{ csrf_token('payment' ~ payment.id) }}">
+        {% if note %}<input type="text" name="note" placeholder="Reason" required>{% endif %}
+        <button>{{ label }}</button>
+    </form>
+{% endmacro %}
+
+{% block body %}
+    <h1>Payments</h1>
+
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
+
+    <h2>Bank transfers to verify</h2>
+    <table>
+        <thead><tr><th>Order</th><th>Amount</th><th>Proof</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for payment in bank_queue %}
+                <tr>
+                    <td><a href="{{ path('app_admin_order_show', {id: payment.order.id}) }}">{{ payment.order.orderNumber }}</a></td>
+                    <td>PHP {{ payment.amount }}</td>
+                    <td>{% if payment.proofFile %}<a href="{{ asset('uploads/proofs/' ~ payment.proofFile) }}">View proof</a>{% endif %}</td>
+                    <td>
+                        {{ _self.action(payment, 'app_admin_payment_approve', 'Approve', false) }}
+                        {{ _self.action(payment, 'app_admin_payment_reject', 'Reject', true) }}
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">Nothing to verify</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Cash on delivery to record</h2>
+    <table>
+        <thead><tr><th>Order</th><th>Amount</th><th>Delivered</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for payment in cod_queue %}
+                <tr>
+                    <td><a href="{{ path('app_admin_order_show', {id: payment.order.id}) }}">{{ payment.order.orderNumber }}</a></td>
+                    <td>PHP {{ payment.amount }}</td>
+                    <td>{{ payment.order.deliveredAt ? payment.order.deliveredAt|date('Y-m-d H:i') }}</td>
+                    <td>{{ _self.action(payment, 'app_admin_payment_collect', 'Mark collected', false) }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">Nothing to record</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Refunds due on cancelled orders</h2>
+    <table>
+        <thead><tr><th>Order</th><th>Amount</th><th>Paid</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for payment in refund_queue %}
+                <tr>
+                    <td><a href="{{ path('app_admin_order_show', {id: payment.order.id}) }}">{{ payment.order.orderNumber }}</a></td>
+                    <td>PHP {{ payment.amount }}</td>
+                    <td>{{ payment.paidAt ? payment.paidAt|date('Y-m-d H:i') }}</td>
+                    <td>{{ _self.action(payment, 'app_admin_payment_refund', 'Refund', false) }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">No refunds due</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>All payments</h2>
+    <form method="get">
+        <label>Method
+            <select name="method">
+                <option value="">All</option>
+                {% for method in methods %}<option value="{{ method }}" {{ method == current_method ? 'selected' }}>{{ method|upper }}</option>{% endfor %}
+            </select>
+        </label>
+        <label>Status
+            <select name="status">
+                <option value="">All</option>
+                {% for status in statuses %}<option value="{{ status }}" {{ status == current_status ? 'selected' }}>{{ status|capitalize }}</option>{% endfor %}
+            </select>
+        </label>
+        <button>Filter</button>
+    </form>
+    <table id="all-payments">
+        <thead><tr><th>Order</th><th>Method</th><th>Status</th><th>Amount</th><th>Reference</th><th>Paid</th><th></th></tr></thead>
+        <tbody>
+            {% for payment in payments %}
+                <tr>
+                    <td>{{ payment.order.orderNumber }}</td>
+                    <td>{{ payment.method|upper }}</td>
+                    <td>{{ payment.status|capitalize }}</td>
+                    <td>PHP {{ payment.amount }}</td>
+                    <td>{{ payment.reference }}</td>
+                    <td>{{ payment.paidAt ? payment.paidAt|date('Y-m-d H:i') }}</td>
+                    <td><a href="{{ path('app_admin_payment_show', {id: payment.id}) }}">Details</a></td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7">No payments found</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
