@@ -105,6 +105,9 @@ class Order
     #[ORM\Column(length: 36, unique: true)]
     private ?string $idempotencyKey = null;
 
+    #[ORM\OneToOne(mappedBy: 'order', cascade: ['persist', 'remove'])]
+    private ?Payment $payment = null;
+
     public function __construct()
     {
         $this->items = new ArrayCollection();
@@ -338,6 +341,23 @@ class Order
     public function setIdempotencyKey(string $idempotencyKey): static
     {
         $this->idempotencyKey = $idempotencyKey;
+
+        return $this;
+    }
+
+    public function getPayment(): ?Payment
+    {
+        return $this->payment;
+    }
+
+    public function setPayment(Payment $payment): static
+    {
+        // set the owning side of the relation if necessary
+        if ($payment->getOrder() !== $this) {
+            $payment->setOrder($this);
+        }
+
+        $this->payment = $payment;
 
         return $this;
     }
