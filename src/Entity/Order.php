@@ -55,17 +55,8 @@ class Order
     #[ORM\Column(length: 20)]
     private ?string $status = null;
 
-    #[ORM\Column(length: 30)]
-    private ?string $paymentMethod = null;
-
-    #[ORM\Column(length: 20)]
-    private ?string $paymentStatus = null;
-
     #[ORM\Column(length: 20)]
     private ?string $shippingMethod = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $paymentProof = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $cancelReason = null;
@@ -90,9 +81,6 @@ class Order
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
-
-    #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $paidAt = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $deliveredAt = null;
@@ -153,30 +141,6 @@ class Order
         return $this;
     }
 
-    public function getPaymentMethod(): ?string
-    {
-        return $this->paymentMethod;
-    }
-
-    public function setPaymentMethod(string $paymentMethod): static
-    {
-        $this->paymentMethod = $paymentMethod;
-
-        return $this;
-    }
-
-    public function getPaymentStatus(): ?string
-    {
-        return $this->paymentStatus;
-    }
-
-    public function setPaymentStatus(string $paymentStatus): static
-    {
-        $this->paymentStatus = $paymentStatus;
-
-        return $this;
-    }
-
     public function getShippingMethod(): ?string
     {
         return $this->shippingMethod;
@@ -185,18 +149,6 @@ class Order
     public function setShippingMethod(string $shippingMethod): static
     {
         $this->shippingMethod = $shippingMethod;
-
-        return $this;
-    }
-
-    public function getPaymentProof(): ?string
-    {
-        return $this->paymentProof;
-    }
-
-    public function setPaymentProof(?string $paymentProof): static
-    {
-        $this->paymentProof = $paymentProof;
 
         return $this;
     }
@@ -293,18 +245,6 @@ class Order
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getPaidAt(): ?\DateTimeImmutable
-    {
-        return $this->paidAt;
-    }
-
-    public function setPaidAt(?\DateTimeImmutable $paidAt): static
-    {
-        $this->paidAt = $paidAt;
 
         return $this;
     }
