@@ -1,16 +1,25 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}My Account{% endblock %}
+{% block title %}My Account | Juanico Hardware{% endblock %}
 
 {% block body %}
     <h1>My Account</h1>
 
-    <p>Email: {{ app.user.email }}</p>
-    <p><a href="{{ path('app_address_index') }}">Manage my addresses</a></p>
-
-    <h2>Profile</h2>
-    {{ form_start(form) }}
-        {{ form_widget(form) }}
-        <button>Save profile</button>
-    {{ form_end(form) }}
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div class="panel">
+            <h2 class="!mt-0">Profile</h2>
+            {{ form_start(form) }}
+                {{ form_widget(form) }}
+                <button class="button-primary">Save profile</button>
+            {{ form_end(form) }}
+        </div>
+        <aside class="panel h-fit">
+            <p class="text-sm">Email: {{ app.user.email }}</p>
+            <ul class="space-y-2 text-sm font-bold">
+                <li><a href="{{ path('app_address_index') }}">Manage my addresses</a></li>
+                <li><a href="{{ path('app_order_index') }}">My orders</a></li>
+                <li><a href="{{ path('app_wishlist') }}">My wishlist</a></li>
+            </ul>
+        </aside>
+    </div>
 {% endblock %}
