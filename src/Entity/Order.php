@@ -102,6 +102,9 @@ class Order
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', orphanRemoval: true)]
     private Collection $items;
 
+    #[ORM\Column(length: 36, unique: true)]
+    private ?string $idempotencyKey = null;
+
     public function __construct()
     {
         $this->items = new ArrayCollection();
@@ -323,6 +326,18 @@ class Order
                 $item->setOrder(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIdempotencyKey(): ?string
+    {
+        return $this->idempotencyKey;
+    }
+
+    public function setIdempotencyKey(string $idempotencyKey): static
+    {
+        $this->idempotencyKey = $idempotencyKey;
 
         return $this;
     }
