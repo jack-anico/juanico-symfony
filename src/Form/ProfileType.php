@@ -6,22 +6,18 @@ use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class ProfileType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('email')
-            ->add('roles')
-            ->add('password')
-            ->add('fullName')
-            ->add('phone')
-            ->add('isActive')
-            ->add('createdAt', null, [
-                'widget' => 'single_text'
+            ->add('fullName', null, [
+                'empty_data' => '',
+                'constraints' => [new NotBlank(message: 'Please enter your full name')],
             ])
-            ->add('isVerified')
+            ->add('phone', null, ['required' => false])
         ;
     }
 

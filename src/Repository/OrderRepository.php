@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Address;
 use App\Entity\Order;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -75,6 +76,11 @@ class OrderRepository extends ServiceEntityRepository
             ->orderBy('o.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function isAddressUsed(Address $address): bool
+    {
+        return $this->count(['shippingAddress' => $address]) > 0;
     }
 
     /** Returns the query so controllers can paginate it. */

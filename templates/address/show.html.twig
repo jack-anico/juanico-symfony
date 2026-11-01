@@ -1,54 +1,19 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Address{% endblock %}
+{% block title %}{{ address.label }}{% endblock %}
 
 {% block body %}
-    <h1>Address</h1>
+    <h1>{{ address.label }}</h1>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ address.id }}</td>
-            </tr>
-            <tr>
-                <th>Label</th>
-                <td>{{ address.label }}</td>
-            </tr>
-            <tr>
-                <th>Recipient</th>
-                <td>{{ address.recipient }}</td>
-            </tr>
-            <tr>
-                <th>Phone</th>
-                <td>{{ address.phone }}</td>
-            </tr>
-            <tr>
-                <th>Line1</th>
-                <td>{{ address.line1 }}</td>
-            </tr>
-            <tr>
-                <th>City</th>
-                <td>{{ address.city }}</td>
-            </tr>
-            <tr>
-                <th>Province</th>
-                <td>{{ address.province }}</td>
-            </tr>
-            <tr>
-                <th>PostalCode</th>
-                <td>{{ address.postalCode }}</td>
-            </tr>
-            <tr>
-                <th>IsDefault</th>
-                <td>{{ address.isDefault ? 'Yes' : 'No' }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <ul>
+        <li>Recipient: {{ address.recipient }}</li>
+        <li>Phone: {{ address.phone }}</li>
+        <li>Address: {{ address.line1 }}, {{ address.city }}, {{ address.province }} {{ address.postalCode }}</li>
+        <li>Default: {{ address.isDefault ? 'Yes' : 'No' }}</li>
+    </ul>
 
-    <a href="{{ path('app_address_index') }}">back to list</a>
-
-    <a href="{{ path('app_address_edit', {'id': address.id}) }}">edit</a>
+    <a href="{{ path('app_address_index') }}">Back to my addresses</a> |
+    <a href="{{ path('app_address_edit', {id: address.id}) }}">Edit</a>
 
     {{ include('address/_delete_form.html.twig') }}
 {% endblock %}

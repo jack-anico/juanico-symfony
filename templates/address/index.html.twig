@@ -1,49 +1,30 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Address index{% endblock %}
+{% block title %}My Addresses{% endblock %}
 
 {% block body %}
-    <h1>Address index</h1>
+    <h1>My Addresses</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Label</th>
-                <th>Recipient</th>
-                <th>Phone</th>
-                <th>Line1</th>
-                <th>City</th>
-                <th>Province</th>
-                <th>PostalCode</th>
-                <th>IsDefault</th>
-                <th>actions</th>
-            </tr>
-        </thead>
+    <p><a href="{{ path('app_address_new') }}">Add a new address</a></p>
+
+    <table>
+        <thead><tr><th>Label</th><th>Recipient</th><th>Address</th><th>Phone</th><th>Default</th><th></th></tr></thead>
         <tbody>
-        {% for address in addresses %}
-            <tr>
-                <td>{{ address.id }}</td>
-                <td>{{ address.label }}</td>
-                <td>{{ address.recipient }}</td>
-                <td>{{ address.phone }}</td>
-                <td>{{ address.line1 }}</td>
-                <td>{{ address.city }}</td>
-                <td>{{ address.province }}</td>
-                <td>{{ address.postalCode }}</td>
-                <td>{{ address.isDefault ? 'Yes' : 'No' }}</td>
-                <td>
-                    <a href="{{ path('app_address_show', {'id': address.id}) }}">show</a>
-                    <a href="{{ path('app_address_edit', {'id': address.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="10">no records found</td>
-            </tr>
-        {% endfor %}
+            {% for address in addresses %}
+                <tr>
+                    <td>{{ address.label }}</td>
+                    <td>{{ address.recipient }}</td>
+                    <td>{{ address.line1 }}, {{ address.city }}, {{ address.province }} {{ address.postalCode }}</td>
+                    <td>{{ address.phone }}</td>
+                    <td>{{ address.isDefault ? 'Yes' : 'No' }}</td>
+                    <td>
+                        <a href="{{ path('app_address_show', {id: address.id}) }}">View</a>
+                        <a href="{{ path('app_address_edit', {id: address.id}) }}">Edit</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">You have no saved addresses</td></tr>
+            {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('app_address_new') }}">Create new</a>
 {% endblock %}

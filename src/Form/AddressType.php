@@ -3,8 +3,6 @@
 namespace App\Form;
 
 use App\Entity\Address;
-use App\Entity\User;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -17,15 +15,11 @@ class AddressType extends AbstractType
             ->add('label')
             ->add('recipient')
             ->add('phone')
-            ->add('line1')
+            ->add('line1', null, ['label' => 'Street address'])
             ->add('city')
             ->add('province')
             ->add('postalCode')
-            ->add('isDefault')
-            ->add('owner', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => 'id',
-            ])
+            ->add('isDefault', null, ['label' => 'Use as my default address'])
         ;
     }
 
