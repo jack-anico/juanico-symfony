@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page not found | Juanico Hardware{% endblock %}
+
+{% block body %}
+    <div class="mx-auto max-w-xl py-14 text-center">
+        <p class="eyebrow">Error 404</p>
+        <h1 class="mt-2">We can't find that page</h1>
+        <p>It may have moved, or the product may no longer be available.</p>
+        <div class="action-row mt-6 justify-center">
+            <a class="button-primary" href="{{ path('app_catalog') }}">Browse the catalog</a>
+            <a class="button-secondary" href="{{ path('app_home') }}">Go home</a>
+        </div>
+    </div>
+{% endblock %}

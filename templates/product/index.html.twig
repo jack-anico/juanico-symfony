@@ -2,6 +2,8 @@
 
 {% block title %}{{ product.name }} | Juanico Hardware{% endblock %}
 
+{% block meta_description %}{{ product.description|striptags|slice(0, 155) }}{% endblock %}
+
 {% block body %}
     <nav aria-label="Breadcrumb" class="mb-6 text-sm text-slate-500">
         <a href="{{ path('app_catalog') }}">Catalog</a> /
