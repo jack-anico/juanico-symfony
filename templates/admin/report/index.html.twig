@@ -1,20 +1,44 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello ReportController!{% endblock %}
+{% block title %}Sales Report{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <h1>Sales Report</h1>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>/var/www/html/src/Controller/Admin/ReportController.php</code></li>
-        <li>Your template at <code>/var/www/html/templates/admin/report/index.html.twig</code></li>
-    </ul>
-</div>
+    <form method="get">
+        <label>From <input type="date" name="from" value="{{ from|date('Y-m-d') }}"></label>
+        <label>To <input type="date" name="to" value="{{ to|date('Y-m-d') }}"></label>
+        <button>Apply</button>
+    </form>
+
+    <p>
+        Revenue: PHP {{ revenue }} | Orders: {{ order_count }} |
+        <a href="{{ path('app_admin_report_export', {from: from|date('Y-m-d'), to: to|date('Y-m-d')}) }}">Export CSV</a>
+    </p>
+
+    <h2>By product</h2>
+    <table>
+        <thead><tr><th>SKU</th><th>Product</th><th>Units</th><th>Revenue</th></tr></thead>
+        <tbody>
+            {% for row in by_product %}
+                <tr><td>{{ row.sku }}</td><td>{{ row.name }}</td><td>{{ row.units }}</td><td>PHP {{ row.revenue }}</td></tr>
+            {% else %}
+                <tr><td colspan="4">No sales in this period</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>By category</h2>
+    <table>
+        <thead><tr><th>Category</th><th>Revenue</th></tr></thead>
+        <tbody>
+            {% for row in by_category %}
+                <tr><td>{{ row.name }}</td><td>PHP {{ row.revenue }}</td></tr>
+            {% else %}
+                <tr><td colspan="2">No sales in this period</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

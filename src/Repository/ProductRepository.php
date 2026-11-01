@@ -170,6 +170,30 @@ class ProductRepository extends ServiceEntityRepository
         return number_format((float) $value, 2, '.', '');
     }
 
+    /**
+     * Units and revenue per product from line items, excluding cancelled and refunded orders.
+     *
+     * @return list<array{id: int, name: string, sku: string, units: string, revenue: string}>
+     */
+    public function revenueByProduct(\DateTimeImmutable $from, \DateTimeImmutable $to): array
+    {
+        return $this->createQueryBuilder('p')
+            ->select('p.id', 'p.name', 'p.sku', 'SUM(i.quantity) AS units', 'SUM(i.quantity * i.unitPrice) AS revenue')
+            ->join(OrderItem::class, 'i', 'WITH', 'i.product = p')
+            ->join('i.order', 'o')
+            ->andWhere('o.createdAt BETWEEN :from AND :to')
+            ->andWhere('o.status <> :cancelled')
+            ->andWhere('o.paymentStatus <> :refunded')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->setParameter('cancelled', Order::STATUS_CANCELLED)
+            ->setParameter('refunded', Order::PAYMENT_REFUNDED)
+            ->groupBy('p.id', 'p.name', 'p.sku')
+            ->orderBy('revenue', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
     private function activeProducts(): QueryBuilder
     {
         return $this->createQueryBuilder('p')
