@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order {{ order.orderNumber }}{% endblock %}
+
+{% block body %}
+    <h1>Order {{ order.orderNumber }}</h1>
+
+    <p><a href="{{ path('app_order_index') }}">Back to my orders</a></p>
+
+    <ul>
+        <li>Status: {{ order.status|capitalize }}</li>
+        <li>Placed: {{ order.createdAt|date('Y-m-d H:i') }}</li>
+        <li>Payment: {{ order.paymentMethod|upper }} ({{ order.paymentStatus }})</li>
+        <li>Shipping: {{ order.shippingMethod|capitalize }}</li>
+        {% if order.trackingNumber %}<li>Tracking number: {{ order.trackingNumber }}</li>{% endif %}
+        {% if order.deliveredAt %}<li>Delivered: {{ order.deliveredAt|date('Y-m-d H:i') }}</li>{% endif %}
+        {% if order.cancelReason %}<li>Cancel reason: {{ order.cancelReason }}</li>{% endif %}
+    </ul>
+
+    {{ include('admin/order/invoice_lines.html.twig') }}
+
+    {% if order.status == 'pending' %}
+        <h2>Cancel this order</h2>
+        <form method="post" action="{{ path('app_order_cancel', {id: order.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ order.id) }}">
+            <label>Reason (optional) <textarea name="reason"></textarea></label>
+            <button>Cancel order</button>
+        </form>
+    {% endif %}
+{% endblock %}

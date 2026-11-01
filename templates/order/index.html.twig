@@ -1,20 +1,30 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello OrderController!{% endblock %}
+{% block title %}My Orders{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <h1>My Orders</h1>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    <p>
+        <a href="{{ path('app_order_index') }}">All</a>
+        {% for status in statuses %}
+            | <a href="{{ path('app_order_index', {status: status}) }}">{{ status|capitalize }}</a>
+        {% endfor %}
+    </p>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>/var/www/html/src/Controller/OrderController.php</code></li>
-        <li>Your template at <code>/var/www/html/templates/order/index.html.twig</code></li>
-    </ul>
-</div>
+    <table>
+        <thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th></tr></thead>
+        <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td><a href="{{ path('app_order_show', {id: order.id}) }}">{{ order.orderNumber }}</a></td>
+                    <td>{{ order.createdAt|date('Y-m-d H:i') }}</td>
+                    <td>{{ order.status|capitalize }}</td>
+                    <td>PHP {{ order.total }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">No orders found</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
