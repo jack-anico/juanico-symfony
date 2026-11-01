@@ -150,25 +150,25 @@ class BackendHardeningTest extends WebTestCase
 
         $crawler = $this->client->request('GET', '/catalog?sort=price_desc');
         $this->assertResponseIsSuccessful();
-        $this->assertCount(20, $crawler->filter('tbody tr'));
-        $this->assertStringContainsString('Saw 25', $crawler->filter('tbody tr')->first()->text());
+        $this->assertCount(20, $crawler->filter('article'));
+        $this->assertStringContainsString('Saw 25', $crawler->filter('article')->first()->text());
 
         $crawler = $this->client->request('GET', '/catalog?sort=price_desc&page=2');
-        $this->assertCount(5, $crawler->filter('tbody tr'));
-        $this->assertStringContainsString('Saw 05', $crawler->filter('tbody tr')->first()->text());
+        $this->assertCount(5, $crawler->filter('article'));
+        $this->assertStringContainsString('Saw 05', $crawler->filter('article')->first()->text());
 
         // Newest-first would start page 2 at Saw 05, so this proves the sort survives paging
         $crawler = $this->client->request('GET', '/catalog?sort=price_asc&page=2');
         $this->assertResponseIsSuccessful();
-        $this->assertStringContainsString('Saw 21', $crawler->filter('tbody tr')->first()->text());
+        $this->assertStringContainsString('Saw 21', $crawler->filter('article')->first()->text());
 
         $crawler = $this->client->request('GET', '/catalog?page=-3');
         $this->assertResponseIsSuccessful();
-        $this->assertCount(20, $crawler->filter('tbody tr'));
+        $this->assertCount(20, $crawler->filter('article'));
 
         $crawler = $this->client->request('GET', '/catalog?page=99');
         $this->assertResponseIsSuccessful();
-        $this->assertCount(1, $crawler->filter('tbody tr'), 'The empty message row');
+        $this->assertCount(1, $crawler->filter('.empty-state'), 'The empty message');
     }
 
     public function testAdminTablesPaginate(): void

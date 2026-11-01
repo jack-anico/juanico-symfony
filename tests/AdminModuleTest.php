@@ -89,7 +89,7 @@ class AdminModuleTest extends WebTestCase
         $this->client->request('GET', '/admin?from=not-a-date');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('body', 'PHP 1234.50');
+        $this->assertSelectorTextContains('body', '₱1,234.50');
         $this->assertSelectorTextContains('body', 'Low Stock Saw');
     }
 
@@ -300,7 +300,7 @@ class AdminModuleTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('tbody', 'Printable Saw');
-        $this->assertSelectorTextContains('tfoot', 'PHP 777.00');
+        $this->assertSelectorTextContains('tfoot', '₱777.00');
     }
 
     public function testUserPagesHidePasswordAndAdminCanDeactivateOthersOnly(): void
