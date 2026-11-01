@@ -53,7 +53,7 @@
             </tr>
             <tr>
                 <th>Image</th>
-                <td>{{ product.image }}</td>
+                <td>{% if product.image %}<img src="{{ asset('uploads/products/' ~ product.image) }}" alt="{{ product.name }}" width="200">{% endif %}</td>
             </tr>
             <tr>
                 <th>Status</th>
@@ -77,6 +77,12 @@
     <a href="{{ path('app_admin_product_index') }}">back to list</a>
 
     <a href="{{ path('app_admin_product_edit', {'id': product.id}) }}">edit</a>
+
+    <h2>Adjust stock</h2>
+    {{ form_start(stock_form) }}
+        {{ form_widget(stock_form) }}
+        <button>Apply adjustment</button>
+    {{ form_end(stock_form) }}
 
     {{ include('admin/product/_delete_form.html.twig') }}
 {% endblock %}
