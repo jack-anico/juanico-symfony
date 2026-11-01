@@ -20,3 +20,5 @@
 ###< symfony/asset-mapper ###
 
 project_documentation/
+
+/public/uploads/

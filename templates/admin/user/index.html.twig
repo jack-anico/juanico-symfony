@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Users{% endblock %}
+
+{% block body %}
+    <h1>Users</h1>
+
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
+
+    <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Verified</th><th>Active</th><th>Joined</th></tr></thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td><a href="{{ path('app_admin_user_show', {id: user.id}) }}">{{ user.fullName }}</a></td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.phone }}</td>
+                    <td>{{ 'ROLE_ADMIN' in user.roles ? 'Admin' : 'Customer' }}</td>
+                    <td>{{ user.isVerified ? 'Yes' : 'No' }}</td>
+                    <td>{{ user.isActive ? 'Yes' : 'No' }}</td>
+                    <td>{{ user.createdAt|date('Y-m-d') }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7">No users yet</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

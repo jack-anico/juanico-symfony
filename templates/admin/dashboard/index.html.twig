@@ -1,20 +1,119 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello DashboardController!{% endblock %}
+{% block title %}Admin Dashboard{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <h1>Admin Dashboard</h1>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    <nav>
+        <a href="{{ path('app_admin_product_index') }}">Products</a> |
+        <a href="{{ path('app_admin_category_index') }}">Categories</a> |
+        <a href="{{ path('app_admin_brand_index') }}">Brands</a> |
+        <a href="{{ path('app_admin_discount_code_index') }}">Discount codes</a> |
+        <a href="{{ path('app_admin_order_index') }}">Orders</a> |
+        <a href="{{ path('app_admin_user_index') }}">Users</a> |
+        <a href="{{ path('app_admin_review_index') }}">Reviews ({{ pending_reviews }} pending)</a> |
+        <a href="{{ path('app_admin_inquiry_index') }}">Inquiries ({{ unresolved_inquiries }} open)</a> |
+        <a href="{{ path('app_admin_report') }}">Sales report</a>
+    </nav>
 
-    This friendly message is coming from:
+    <form method="get">
+        <label>From <input type="date" name="from" value="{{ from|date('Y-m-d') }}"></label>
+        <label>To <input type="date" name="to" value="{{ to|date('Y-m-d') }}"></label>
+        <button>Apply</button>
+    </form>
+
+    <h2>Sales in this period</h2>
     <ul>
-        <li>Your controller at <code>/var/www/html/src/Controller/Admin/DashboardController.php</code></li>
-        <li>Your template at <code>/var/www/html/templates/admin/dashboard/index.html.twig</code></li>
+        <li>Revenue: PHP {{ revenue }}</li>
+        <li>Orders: {{ order_count }}</li>
+        <li>Average order value: PHP {{ average_order_value }}</li>
+        <li>New customers: {{ new_customers }}</li>
     </ul>
-</div>
+
+    <h2>Overall</h2>
+    <ul>
+        <li>Cancellation rate: {{ (cancellation_rate * 100)|number_format(1) }}%</li>
+        <li>Average fulfillment: {{ average_fulfillment_hours is null ? 'n/a' : average_fulfillment_hours|number_format(1) ~ ' hours' }}</li>
+        <li>Repeat customer rate: {{ (repeat_customer_rate * 100)|number_format(1) }}%</li>
+        <li>Active customers (30 days): {{ active_customers }}</li>
+        <li>Abandoned carts (24 hours): {{ abandoned_carts }}</li>
+        <li>Inventory value at cost: PHP {{ inventory_value }}</li>
+        <li>Pending orders older than 24 hours: {{ stale_pending_orders|length }}</li>
+    </ul>
+
+    <h2>Orders by status</h2>
+    <ul>
+        {% for status, count in orders_by_status %}
+            <li>{{ status|capitalize }}: {{ count }}</li>
+        {% else %}
+            <li>No orders yet</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Low stock</h2>
+    <ul>
+        {% for product in low_stock %}
+            <li><a href="{{ path('app_admin_product_show', {id: product.id}) }}">{{ product.name }}</a>: {{ product.stock }} left</li>
+        {% else %}
+            <li>Nothing is low</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Out of stock</h2>
+    <ul>
+        {% for product in out_of_stock %}
+            <li><a href="{{ path('app_admin_product_show', {id: product.id}) }}">{{ product.name }}</a></li>
+        {% else %}
+            <li>Nothing is out of stock</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Best sellers</h2>
+    <ol>
+        {% for row in best_sellers %}
+            <li>{{ row.product.name }}: {{ row.sold }} sold</li>
+        {% else %}
+            <li>No sales yet</li>
+        {% endfor %}
+    </ol>
+
+    <h2>Slow-moving products (30 days)</h2>
+    <ul>
+        {% for product in slow_moving %}
+            <li>{{ product.name }}</li>
+        {% else %}
+            <li>None</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Top buyers</h2>
+    <ol>
+        {% for row in top_buyers %}
+            <li>{{ row.user.fullName }}: {{ row.orderCount }} orders, PHP {{ row.totalSpent }}</li>
+        {% else %}
+            <li>No buyers yet</li>
+        {% endfor %}
+    </ol>
+
+    <h2>Revenue by category</h2>
+    <ul>
+        {% for row in revenue_by_category %}
+            <li>{{ row.name }}: PHP {{ row.revenue }}</li>
+        {% else %}
+            <li>No sales in this period</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Sales by day</h2>
+    <table>
+        <thead><tr><th>Day</th><th>Orders</th><th>Revenue</th></tr></thead>
+        <tbody>
+            {% for row in sales_by_day %}
+                <tr><td>{{ row.day }}</td><td>{{ row.orders }}</td><td>PHP {{ row.revenue }}</td></tr>
+            {% else %}
+                <tr><td colspan="3">No sales in this period</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

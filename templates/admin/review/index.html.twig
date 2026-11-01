@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Review Moderation{% endblock %}
+
+{% macro actions(review, primary_route, primary_label) %}
+    <form method="post" action="{{ path(primary_route, {id: review.id}) }}" style="display:inline">
+        <input type="hidden" name="_token" value="{{ csrf_token('review' ~ review.id) }}">
+        <button>{{ primary_label }}</button>
+    </form>
+    <form method="post" action="{{ path('app_admin_review_delete', {id: review.id}) }}" style="display:inline">
+        <input type="hidden" name="_token" value="{{ csrf_token('review' ~ review.id) }}">
+        <button>Delete</button>
+    </form>
+{% endmacro %}
+
+{% macro table(reviews, primary_route, primary_label) %}
+    <table>
+        <thead><tr><th>Product</th><th>Author</th><th>Rating</th><th>Comment</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for review in reviews %}
+                <tr>
+                    <td>{{ review.product.name }}</td>
+                    <td>{{ review.author.fullName }}</td>
+                    <td>{{ review.rating }}/5</td>
+                    <td>{{ review.comment }}</td>
+                    <td>{{ review.createdAt|date('Y-m-d H:i') }}</td>
+                    <td>{{ _self.actions(review, primary_route, primary_label) }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">None</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+{% block body %}
+    <h1>Review Moderation</h1>
+
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
+
+    <h2>Waiting for approval</h2>
+    {{ _self.table(pending, 'app_admin_review_approve', 'Approve') }}
+
+    <h2>Published</h2>
+    {{ _self.table(approved, 'app_admin_review_hide', 'Hide') }}
+{% endblock %}

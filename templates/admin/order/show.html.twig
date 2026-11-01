@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Order {{ order.orderNumber }}{% endblock %}
+
+{% block body %}
+    <h1>Order {{ order.orderNumber }}</h1>
+
+    <p>
+        <a href="{{ path('app_admin_order_index') }}">Back to orders</a> |
+        <a href="{{ path('app_admin_order_invoice', {id: order.id}) }}">Invoice</a>
+    </p>
+
+    <ul>
+        <li>Status: {{ order.status|capitalize }}</li>
+        <li>Customer: {{ order.customer.fullName }} ({{ order.customer.email }})</li>
+        <li>Placed: {{ order.createdAt|date('Y-m-d H:i') }}</li>
+        <li>Payment: {{ order.paymentMethod|upper }}, {{ order.paymentStatus }}{% if order.paidAt %} on {{ order.paidAt|date('Y-m-d H:i') }}{% endif %}</li>
+        <li>Shipping: {{ order.shippingMethod|capitalize }}</li>
+        {% if order.deliveredAt %}<li>Delivered: {{ order.deliveredAt|date('Y-m-d H:i') }}</li>{% endif %}
+        {% if order.cancelReason %}<li>Cancel reason: {{ order.cancelReason }}</li>{% endif %}
+        {% if order.notes %}<li>Customer notes: {{ order.notes }}</li>{% endif %}
+    </ul>
+
+    {{ include('admin/order/invoice_lines.html.twig') }}
+
+    <h2>Update order</h2>
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button>Save</button>
+    {{ form_end(form) }}
+
+    {% if can_cancel %}
+        <h2>Cancel order</h2>
+        <form method="post" action="{{ path('app_admin_order_cancel', {id: order.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ order.id) }}">
+            <label>Reason <textarea name="reason" required></textarea></label>
+            <button>Cancel order</button>
+        </form>
+    {% endif %}
+{% endblock %}

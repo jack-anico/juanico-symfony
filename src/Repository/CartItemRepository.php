@@ -32,6 +32,20 @@ class CartItemRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** Customers whose cart has not changed for at least $hours hours. */
+    public function countAbandonedCarts(int $hours = 24): int
+    {
+        $owners = $this->createQueryBuilder('ci')
+            ->select('IDENTITY(ci.owner)')
+            ->groupBy('ci.owner')
+            ->having('MAX(ci.updatedAt) < :cutoff')
+            ->setParameter('cutoff', new \DateTimeImmutable(sprintf('-%d hours', $hours)))
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return count($owners);
+    }
+
     public function findOneByOwnerAndProduct(User $user, Product $product): ?CartItem
     {
         return $this->findOneBy(['owner' => $user, 'product' => $product]);

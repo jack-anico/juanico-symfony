@@ -23,6 +23,16 @@ class Order
     public const PAYMENT_PAID = 'paid';
     public const PAYMENT_REFUNDED = 'refunded';
 
+    /** Allowed next statuses. Orders can only be cancelled before packing. */
+    public const TRANSITIONS = [
+        self::STATUS_PENDING => [self::STATUS_CONFIRMED, self::STATUS_CANCELLED],
+        self::STATUS_CONFIRMED => [self::STATUS_PACKED, self::STATUS_CANCELLED],
+        self::STATUS_PACKED => [self::STATUS_SHIPPED],
+        self::STATUS_SHIPPED => [self::STATUS_DELIVERED],
+        self::STATUS_DELIVERED => [],
+        self::STATUS_CANCELLED => [],
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -96,6 +106,11 @@ class Order
     public function __construct()
     {
         $this->items = new ArrayCollection();
+    }
+
+    public function canTransitionTo(string $status): bool
+    {
+        return in_array($status, self::TRANSITIONS[$this->status] ?? [], true);
     }
 
     public function getId(): ?int

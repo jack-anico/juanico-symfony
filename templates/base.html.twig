@@ -19,6 +19,14 @@
         {% endif %}
     </head>
     <body>
+        {% if app.user %}
+            <p>{{ app.user.userIdentifier }} | <a href="{{ logout_path() }}">Log out</a></p>
+        {% endif %}
+        {% for type, messages in app.flashes(['success', 'error']) %}
+            {% for message in messages %}
+                <p class="flash flash-{{ type }}">{{ message }}</p>
+            {% endfor %}
+        {% endfor %}
         {% block body %}{% endblock %}
     </body>
 </html>

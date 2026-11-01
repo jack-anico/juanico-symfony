@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inquiries{% endblock %}
+
+{% block body %}
+    <h1>Inquiries</h1>
+
+    <p>
+        <a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a> |
+        <a href="{{ path('app_admin_inquiry_index') }}">All</a>
+        {% for status in statuses %}
+            | <a href="{{ path('app_admin_inquiry_index', {status: status}) }}">{{ status|capitalize }}</a>
+        {% endfor %}
+    </p>
+
+    <table>
+        <thead><tr><th>Subject</th><th>From</th><th>Status</th><th>Received</th></tr></thead>
+        <tbody>
+            {% for inquiry in inquiries %}
+                <tr>
+                    <td><a href="{{ path('app_admin_inquiry_show', {id: inquiry.id}) }}">{{ inquiry.subject }}</a></td>
+                    <td>{{ inquiry.name }} ({{ inquiry.email }})</td>
+                    <td>{{ inquiry.status|capitalize }}</td>
+                    <td>{{ inquiry.createdAt|date('Y-m-d H:i') }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">No inquiries</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

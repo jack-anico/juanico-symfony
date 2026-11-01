@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Orders{% endblock %}
+
+{% block body %}
+    <h1>Orders</h1>
+
+    <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
+
+    <table>
+        <thead>
+            <tr><th>Order</th><th>Date</th><th>Customer</th><th>Status</th><th>Payment</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+                <tr>
+                    <td><a href="{{ path('app_admin_order_show', {id: order.id}) }}">{{ order.orderNumber }}</a></td>
+                    <td>{{ order.createdAt|date('Y-m-d H:i') }}</td>
+                    <td>{{ order.customer.fullName }}</td>
+                    <td>{{ order.status|capitalize }}</td>
+                    <td>{{ order.paymentMethod|upper }} ({{ order.paymentStatus }})</td>
+                    <td>PHP {{ order.total }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">No orders yet</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

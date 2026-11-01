@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ inquiry.subject }}{% endblock %}
+
+{% block body %}
+    <h1>{{ inquiry.subject }}</h1>
+
+    <p><a href="{{ path('app_admin_inquiry_index') }}">Back to inquiries</a></p>
+
+    <ul>
+        <li>From: {{ inquiry.name }} ({{ inquiry.email }})</li>
+        <li>Status: {{ inquiry.status|capitalize }}</li>
+        <li>Received: {{ inquiry.createdAt|date('Y-m-d H:i') }}</li>
+    </ul>
+
+    <p>{{ inquiry.message|nl2br }}</p>
+
+    {% for status, label in {read: 'Mark as read', resolved: 'Mark as resolved'} %}
+        {% if inquiry.status != status %}
+            <form method="post" action="{{ path('app_admin_inquiry_status', {id: inquiry.id}) }}" style="display:inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('inquiry' ~ inquiry.id) }}">
+                <input type="hidden" name="status" value="{{ status }}">
+                <button>{{ label }}</button>
+            </form>
+        {% endif %}
+    {% endfor %}
+{% endblock %}
