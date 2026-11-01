@@ -18,5 +18,8 @@
 
     {% if order.payment %}<p>Payment: {{ order.payment.method|upper }} ({{ order.payment.status }})</p>{% endif %}
 
-    <p><a href="{{ path('app_admin_order_show', {id: order.id}) }}">Back to order</a></p>
+    <div class="action-row print:hidden">
+        <button class="button-primary" type="button" onclick="window.print()">Print invoice</button>
+        <a href="{{ path('app_admin_order_show', {id: order.id}) }}">Back to order</a>
+    </div>
 {% endblock %}
