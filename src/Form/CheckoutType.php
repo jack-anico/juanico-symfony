@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Address;
 use App\Entity\Order;
+use App\Entity\Payment;
 use App\Entity\User;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -11,11 +12,14 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class CheckoutType extends AbstractType
 {
@@ -24,6 +28,12 @@ class CheckoutType extends AbstractType
         $user = $options['user'];
 
         $builder
+            ->add('idempotencyKey', HiddenType::class, [
+                'constraints' => [
+                    new NotBlank(),
+                    new Regex('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i'),
+                ],
+            ])
             ->add('address', EntityType::class, [
                 'class' => Address::class,
                 // Only the customer's own addresses are valid choices.
@@ -40,24 +50,22 @@ class CheckoutType extends AbstractType
                 ),
             ])
             ->add('shippingMethod', ChoiceType::class, [
-                'choices' => array_combine(
-                    array_map(
-                        static fn (string $method, string $fee): string => sprintf('%s (PHP %s)', ucfirst($method), $fee),
-                        array_keys(Order::SHIPPING_FEES),
-                        Order::SHIPPING_FEES,
-                    ),
-                    array_keys(Order::SHIPPING_FEES),
-                ),
+                'choices' => [
+                    'Standard' => Order::SHIPPING_STANDARD,
+                    'Express' => Order::SHIPPING_EXPRESS,
+                    'Store pickup (free)' => Order::SHIPPING_PICKUP,
+                ],
             ])
             ->add('paymentMethod', ChoiceType::class, [
                 'choices' => [
-                    'Cash on delivery' => Order::PAYMENT_COD,
-                    'GCash' => Order::PAYMENT_GCASH,
-                    'Bank transfer' => Order::PAYMENT_BANK,
+                    'Cash on delivery' => Payment::METHOD_COD,
+                    'GCash (simulated)' => Payment::METHOD_GCASH,
+                    'Card (simulated)' => Payment::METHOD_CARD,
+                    'Bank transfer' => Payment::METHOD_BANK,
                 ],
             ])
             ->add('paymentProof', FileType::class, [
-                'label' => 'Payment proof (required for GCash and bank transfer)',
+                'label' => 'Payment proof (required for bank transfer)',
                 'required' => false,
                 'constraints' => [
                     new File(
@@ -74,6 +82,10 @@ class CheckoutType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setDefaults([
+            // Anything else a client sends, such as a price, is ignored rather than trusted.
+            'allow_extra_fields' => true,
+        ]);
         $resolver->setRequired('user');
         $resolver->setAllowedTypes('user', User::class);
     }
