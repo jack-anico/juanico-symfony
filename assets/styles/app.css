@@ -53,6 +53,8 @@
   .button-primary:disabled { cursor: not-allowed; background: var(--color-slate-300); }
   .button-secondary { border: 1px solid var(--color-slate-200); background: white; color: var(--color-navy-900); }
   .button-secondary:hover { border-color: var(--color-navy-300); }
+  .button-danger { display: inline-flex; min-height: 2.75rem; align-items: center; justify-content: center; border: 1px solid var(--color-red-200); border-radius: .5rem; background: white; padding-inline: 1.25rem; font-size: .875rem; font-weight: 700; color: var(--color-red-700); transition: 150ms; }
+  .button-danger:hover { background: var(--color-red-50); }
   .panel { border: 1px solid var(--color-slate-200); border-radius: .75rem; background: white; padding: 1.25rem; box-shadow: 0 1px 2px rgb(15 23 42 / .05); }
   .page-title { font-size: 1.875rem; font-weight: 900; letter-spacing: -.025em; color: var(--color-navy-950); }
   .empty-state { border: 1px dashed var(--color-slate-300); border-radius: .75rem; background: white; padding: 4rem 1.5rem; text-align: center; }
@@ -94,6 +96,16 @@
   .content button:not([class]) { display: inline-flex; min-height: 2.5rem; align-items: center; justify-content: center; border-radius: .5rem; background: var(--color-navy-800); padding-inline: 1rem; font-size: .875rem; font-weight: 700; color: white; transition: 150ms; }
   .content button:not([class]):hover { background: var(--color-navy-700); }
   .table-scroll { overflow-x: auto; }
+  .content form + a:not([class]) { display: inline-block; margin-top: 1rem; }
+  .content a:not([class]) + a:not([class]) { margin-left: 1rem; }
+  .content a:not([class]) + form { display: block; margin-top: 1rem; }
+  .detail-list { display: grid; gap: .75rem; margin-bottom: 1.25rem; font-size: .875rem; }
+  .detail-list > div { display: grid; gap: .125rem; }
+  .detail-list dt { font-size: .75rem; font-weight: 700; color: var(--color-slate-500); }
+  .detail-list dd { overflow-wrap: anywhere; font-weight: 600; color: var(--color-navy-950); }
+  .action-row { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+  .content .action-row > a:not([class]) { margin: 0; }
+  .content .action-row > form { margin: 0; }
 }
 
 @keyframes toast-out { to { opacity: 0; visibility: hidden; } }
