@@ -46,6 +46,11 @@ class CartItemRepository extends ServiceEntityRepository
         return count($owners);
     }
 
+    public function countByOwner(User $user): int
+    {
+        return $this->count(['owner' => $user]);
+    }
+
     public function findOneByOwnerAndProduct(User $user, Product $product): ?CartItem
     {
         return $this->findOneBy(['owner' => $user, 'product' => $product]);

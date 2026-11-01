@@ -1,46 +1,165 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}Juanico Hardware{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2314305c%22 stroke-width=%222%22 stroke-linecap=%22round%22><path d=%22m14 7 3-3 3 3-3 3M15.5 8.5 8 16l-3 3M5 5l14 14M4 4l4 1-3 3-1-4Z%22/></svg>">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+        {% block stylesheets %}{% endblock %}
 
         {% block javascripts %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
-
-        {% set frankenphp_hot_reload = app.request.server.get('FRANKENPHP_HOT_RELOAD') %}
-        {% if frankenphp_hot_reload %}
-        <meta name="frankenphp-hot-reload:url" content="{{ frankenphp_hot_reload }}">
-        <script src="https://cdn.jsdelivr.net/npm/idiomorph"></script>
-        <script src="https://cdn.jsdelivr.net/npm/frankenphp-hot-reload/+esm" type="module"></script>
-        {% endif %}
     </head>
-    <body>
-        <nav>
-            <a href="{{ path('app_home') }}">Home</a> |
-            <a href="{{ path('app_catalog') }}">Catalog</a> |
-            <a href="{{ path('app_material_calculator') }}">Material calculator</a> |
-            <a href="{{ path('app_contact') }}">Contact</a> |
-            {% if app.user %}
-                <a href="{{ path('app_cart') }}">Cart</a> |
-                <a href="{{ path('app_wishlist') }}">Wishlist</a> |
-                <a href="{{ path('app_order_index') }}">My orders</a> |
-                <a href="{{ path('app_account') }}">Account</a> |
-                {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('app_admin_dashboard') }}">Admin</a> |{% endif %}
-                {{ app.user.userIdentifier }} <a href="{{ logout_path() }}">Log out</a>
+    <body class="flex min-h-screen flex-col bg-white text-slate-700" data-controller="menu">
+        {% set shipping_fee = shop_setting('shipping_fee') %}
+        {% set free_over = shop_setting('free_shipping_threshold') %}
+        {% set nav = [
+            {label: 'Shop', url: path('app_catalog')},
+            {label: 'Deals', url: path('app_catalog', {deals: 1})},
+            {label: 'Projects', url: catalog_url('project-kits-and-bundles')},
+            {label: 'Brands', url: path('app_catalog') ~ '#filters'},
+        ] %}
+
+        <div class="bg-navy-950 px-4 py-2 text-center text-xs font-semibold tracking-wide text-white sm:text-sm print:hidden">
+            {% if free_over is not null and free_over > 0 %}
+                Free delivery on orders over {{ free_over|peso }}
+                {% if shipping_fee is not null %}<span class="mx-3 hidden text-navy-300 sm:inline">•</span><span class="hidden sm:inline">Flat {{ shipping_fee|peso }} delivery on other orders</span>{% endif %}
             {% else %}
-                <a href="{{ path('app_login') }}">Log in</a> |
-                <a href="{{ path('app_register') }}">Register</a>
+                Build better, starting here
             {% endif %}
-        </nav>
-        {% for type, messages in app.flashes(['success', 'error']) %}
-            {% for message in messages %}
-                <p class="flash flash-{{ type }}">{{ message }}</p>
+        </div>
+
+        <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur print:hidden">
+            <div class="container flex h-[72px] items-center gap-4 lg:gap-8">
+                <button aria-label="Open menu" class="icon-btn lg:hidden" data-action="menu#open">{{ include('_partials/icon.html.twig', {name: 'menu'}) }}</button>
+                <a class="flex shrink-0 items-center gap-2" href="{{ path('app_home') }}">
+                    <span class="grid size-9 rotate-3 place-items-center rounded-lg bg-navy-800 text-white">{{ include('_partials/icon.html.twig', {name: 'tools'}) }}</span>
+                    <span class="text-xl font-black tracking-[-0.04em] text-navy-950 sm:text-2xl">JUANICO</span>
+                </a>
+                <nav class="hidden items-center gap-1 lg:flex">
+                    {% for item in nav %}<a class="rounded-lg px-3 py-2 text-sm font-bold text-navy-900 hover:bg-navy-50" href="{{ item.url }}">{{ item.label }}</a>{% endfor %}
+                </nav>
+                <form action="{{ path('app_catalog') }}" method="get" role="search" class="relative ml-auto hidden max-w-md flex-1 md:block">
+                    <label><span class="sr-only">Search products</span>
+                        {{ include('_partials/icon.html.twig', {name: 'search', class: 'absolute left-4 top-3 size-5 text-slate-400'}) }}
+                        <input class="search-input" name="q" type="search" placeholder="What are you building today?" value="{{ app.request.query.get('q') }}">
+                    </label>
+                </form>
+                <div class="ml-auto flex items-center gap-1 md:ml-0">
+                    {% if app.user %}
+                        <details class="relative hidden sm:block">
+                            <summary class="icon-btn list-none [&::-webkit-details-marker]:hidden" aria-label="Account menu">{{ include('_partials/icon.html.twig', {name: 'user'}) }}</summary>
+                            <div class="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 text-sm font-bold text-navy-950 shadow-xl">
+                                <p class="truncate px-3 py-2 text-xs font-medium text-slate-500">{{ app.user.userIdentifier }}</p>
+                                <a class="block rounded-lg px-3 py-2 hover:bg-navy-50" href="{{ path('app_account') }}">Account</a>
+                                <a class="block rounded-lg px-3 py-2 hover:bg-navy-50" href="{{ path('app_order_index') }}">My orders</a>
+                                {% if is_granted('ROLE_ADMIN') %}<a class="block rounded-lg px-3 py-2 hover:bg-navy-50" href="{{ path('app_admin_dashboard') }}">Admin</a>{% endif %}
+                                <a class="block rounded-lg px-3 py-2 hover:bg-navy-50" href="{{ logout_path() }}">Log out</a>
+                            </div>
+                        </details>
+                    {% else %}
+                        <a class="icon-btn hidden sm:grid" aria-label="Log in" href="{{ path('app_login') }}">{{ include('_partials/icon.html.twig', {name: 'user'}) }}</a>
+                    {% endif %}
+                    <a class="icon-btn hidden sm:grid" aria-label="Wishlist" href="{{ path('app_wishlist') }}">{{ include('_partials/icon.html.twig', {name: 'heart'}) }}</a>
+                    {% set cart_items = cart_count() %}
+                    <a class="icon-btn relative" aria-label="Cart with {{ cart_items }} items" href="{{ path('app_cart') }}">
+                        {{ include('_partials/icon.html.twig', {name: 'cart'}) }}
+                        {% if cart_items %}<span class="absolute right-0 top-0 grid size-4 place-items-center rounded-full bg-navy-800 text-[10px] font-bold text-white">{{ cart_items }}</span>{% endif %}
+                    </a>
+                </div>
+            </div>
+            <form action="{{ path('app_catalog') }}" method="get" role="search" class="border-t border-slate-100 p-3 md:hidden">
+                <label class="relative block">
+                    {{ include('_partials/icon.html.twig', {name: 'search', class: 'absolute left-4 top-3 size-5 text-slate-400'}) }}
+                    <input class="search-input" name="q" type="search" aria-label="Search products" placeholder="Search tools, paint and more" value="{{ app.request.query.get('q') }}">
+                </label>
+            </form>
+        </header>
+
+        <main id="top" class="flex-1">
+            {% block main %}
+                <div class="content container py-10">
+                    {% block body %}{% endblock %}
+                </div>
+            {% endblock %}
+        </main>
+
+        <footer class="bg-navy-950 text-slate-400 print:hidden">
+            <div class="container grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+                <div>
+                    <a class="flex items-center gap-2 text-white" href="{{ path('app_home') }}">
+                        <span class="grid size-9 place-items-center rounded-lg bg-white text-navy-900">{{ include('_partials/icon.html.twig', {name: 'tools'}) }}</span>
+                        <span class="text-xl font-black">JUANICO</span>
+                    </a>
+                    <p class="mt-5 max-w-sm text-sm leading-6">The dependable hardware partner for Filipino homes, workshops, and building projects.</p>
+                    <p class="mt-6 text-xs text-slate-500">Photos by benjamin lehman, Syed Hussaini, Greyson Joralemon, Karl Solano, and Bermix Studio on Unsplash.</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">Shop</h3>
+                    <ul class="mt-4 space-y-3 text-sm">
+                        <li><a class="hover:text-white" href="{{ catalog_url('power-tools-and-workshop', 'power-tools') }}">Power tools</a></li>
+                        <li><a class="hover:text-white" href="{{ catalog_url('hand-tools') }}">Hand tools</a></li>
+                        <li><a class="hover:text-white" href="{{ catalog_url('paint-coatings-and-adhesives', 'paint-and-finishes') }}">Paint</a></li>
+                        <li><a class="hover:text-white" href="{{ catalog_url('electrical-lighting-and-power') }}">Electrical</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">Help</h3>
+                    <ul class="mt-4 space-y-3 text-sm">
+                        <li><a class="hover:text-white" href="{{ path('app_contact') }}">Contact us</a></li>
+                        <li><a class="hover:text-white" href="{{ path('app_order_index') }}">My orders</a></li>
+                        <li><a class="hover:text-white" href="{{ path('app_account') }}">My account</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">Juanico</h3>
+                    <ul class="mt-4 space-y-3 text-sm">
+                        <li><a class="hover:text-white" href="{{ path('app_material_calculator') }}">Material calculator</a></li>
+                        <li><a class="hover:text-white" href="{{ path('app_catalog', {deals: 1}) }}">Deals</a></li>
+                        <li><a class="hover:text-white" href="{{ path('app_catalog') }}">All products</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-navy-800">
+                <div class="container py-5 text-xs">© {{ 'now'|date('Y') }} Juanico Hardware. All rights reserved.</div>
+            </div>
+        </footer>
+
+        <div class="fixed inset-0 z-50 hidden lg:hidden" role="dialog" aria-modal="true" aria-label="Menu" data-menu-target="panel" data-turbo-temporary>
+            <button aria-label="Close menu" class="absolute inset-0 bg-navy-950/60" data-action="menu#close"></button>
+            <div class="absolute inset-y-0 left-0 w-[86%] max-w-sm overflow-y-auto bg-white p-5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xl font-black text-navy-950">JUANICO</span>
+                    <button class="icon-btn" aria-label="Close menu" data-action="menu#close">{{ include('_partials/icon.html.twig', {name: 'close'}) }}</button>
+                </div>
+                <nav class="mt-8 space-y-1 text-sm font-bold text-navy-950">
+                    {% for item in nav %}<a class="flex min-h-12 items-center rounded-lg px-3 hover:bg-navy-50" href="{{ item.url }}">{{ item.label }}</a>{% endfor %}
+                    <a class="flex min-h-12 items-center rounded-lg px-3 hover:bg-navy-50" href="{{ path('app_wishlist') }}">Wishlist</a>
+                    {% if app.user %}
+                        <a class="flex min-h-12 items-center rounded-lg px-3 hover:bg-navy-50" href="{{ path('app_account') }}">Account</a>
+                        <a class="flex min-h-12 items-center rounded-lg px-3 hover:bg-navy-50" href="{{ path('app_order_index') }}">My orders</a>
+                        {% if is_granted('ROLE_ADMIN') %}<a class="flex min-h-12 items-center rounded-lg px-3 hover:bg-navy-50" href="{{ path('app_admin_dashboard') }}">Admin</a>{% endif %}
+                        <a class="flex min-h-12 items-center rounded-lg px-3 hover:bg-navy-50" href="{{ logout_path() }}">Log out</a>
+                    {% else %}
+                        <a class="flex min-h-12 items-center rounded-lg px-3 hover:bg-navy-50" href="{{ path('app_login') }}">Log in</a>
+                        <a class="flex min-h-12 items-center rounded-lg px-3 hover:bg-navy-50" href="{{ path('app_register') }}">Register</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+
+        <div class="fixed bottom-5 left-1/2 z-50 flex w-max max-w-[90vw] -translate-x-1/2 flex-col gap-2 print:hidden">
+            {% for type, messages in app.flashes(['success', 'error']) %}
+                {% for message in messages %}
+                    <p class="toast flash flash-{{ type }}" role="{{ type == 'error' ? 'alert' : 'status' }}" data-turbo-temporary>
+                        {% if type == 'success' %}<span class="grid size-6 shrink-0 place-items-center rounded-full bg-emerald-500">{{ include('_partials/icon.html.twig', {name: 'check', class: 'size-4'}) }}</span>{% endif %}
+                        <span>{{ message }}</span>
+                    </p>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
-        {% block body %}{% endblock %}
+        </div>
     </body>
 </html>

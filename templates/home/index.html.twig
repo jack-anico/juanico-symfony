@@ -2,34 +2,106 @@
 
 {% block title %}Juanico Hardware{% endblock %}
 
-{% block body %}
-    <h1>Juanico Hardware</h1>
-    <p>Carpentry tools and building materials.</p>
+{% block main %}
+    <section class="bg-navy-50 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+        <div class="mx-auto grid max-w-7xl overflow-hidden rounded-2xl bg-navy-950 shadow-xl shadow-navy-950/10 lg:min-h-[540px] lg:grid-cols-[1.03fr_.97fr]">
+            <div class="z-10 flex flex-col justify-center px-6 py-14 sm:px-10 lg:px-16">
+                <div class="mb-5 flex w-fit items-center gap-2 rounded-full border border-navy-700 bg-navy-900 px-3 py-1.5 text-xs font-bold uppercase tracking-[.14em] text-navy-200">{{ include('_partials/icon.html.twig', {name: 'spark', class: 'size-4 text-amber-400'}) }} Build better, starting here</div>
+                <h1 class="text-4xl font-black leading-[1.05] tracking-[-.045em] text-white sm:text-5xl lg:text-6xl">The right tools.<br><span class="text-navy-300">Every project.</span></h1>
+                <p class="mt-6 max-w-lg text-base leading-7 text-slate-300 sm:text-lg">Trusted hardware, honest prices, and expert support for weekend fixes and professional builds alike.</p>
+                <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                    <a class="button-light" href="#shop">Shop bestsellers {{ include('_partials/icon.html.twig', {name: 'arrow'}) }}</a>
+                    <a class="button-outline" href="#categories">Browse categories</a>
+                </div>
+                <div class="mt-10 flex flex-wrap gap-5 border-t border-navy-800 pt-6 text-sm text-navy-200">
+                    <span class="flex items-center gap-2">{{ include('_partials/icon.html.twig', {name: 'check', class: 'size-4 text-emerald-400'}) }} Genuine products</span>
+                    <span class="flex items-center gap-2">{{ include('_partials/icon.html.twig', {name: 'check', class: 'size-4 text-emerald-400'}) }} Expert advice</span>
+                </div>
+            </div>
+            <div class="relative min-h-80 overflow-hidden lg:min-h-full">
+                <img alt="Power tools arranged on a workbench" class="absolute inset-0 h-full w-full object-cover" src="{{ asset('images/hero-tools.jpg') }}" width="1400" height="933">
+                <div class="absolute inset-0 bg-gradient-to-r from-navy-950/60 to-transparent"></div>
+                {% if on_sale %}
+                    <a href="{{ path('app_catalog', {deals: 1}) }}" class="absolute bottom-6 right-6 rounded-xl bg-white/95 p-4 shadow-xl">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-navy-600">Deals this week</span>
+                        <span class="mt-1 block font-bold text-navy-950">{{ on_sale|length }} products on sale</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
 
-    <h2>Shop by category</h2>
-    <ul>
-        {% for category in categories %}
-            <li><a href="{{ path('app_catalog', {category: category.id}) }}">{{ category.name }}</a></li>
-        {% else %}
-            <li>Categories are coming soon</li>
-        {% endfor %}
-    </ul>
+    <section class="container py-14 sm:py-20" id="categories">
+        {{ include('home/_heading.html.twig', {eyebrow: 'Find your aisle', title: 'Shop by category'}) }}
+        <div class="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 lg:gap-4">
+            {% for item in [
+                {name: 'Power tools', icon: 'drill', note: 'Drills, saws & more', url: catalog_url('power-tools-and-workshop', 'power-tools')},
+                {name: 'Hand tools', icon: 'tools', note: 'Built for every job', url: catalog_url('hand-tools')},
+                {name: 'Electrical', icon: 'bolt', note: 'Safe, reliable supplies', url: catalog_url('electrical-lighting-and-power')},
+                {name: 'Plumbing', icon: 'pipe', note: 'Fixtures & fittings', url: catalog_url('plumbing-and-water-systems')},
+                {name: 'Paint & supplies', icon: 'paint', note: 'Color made simple', url: catalog_url('paint-coatings-and-adhesives', 'paint-and-finishes')},
+                {name: 'Shop all', icon: 'grid', note: 'Explore ' ~ product_count|number_format ~ ' items', url: path('app_catalog')},
+            ] %}
+                <a class="category-card group" href="{{ item.url }}">
+                    <span class="grid size-11 place-items-center rounded-xl bg-navy-50 text-navy-700 transition group-hover:bg-navy-800 group-hover:text-white">{{ include('_partials/icon.html.twig', {name: item.icon, class: 'size-6'}) }}</span>
+                    <span class="mt-6 block text-sm font-bold text-navy-950">{{ item.name }}</span>
+                    <span class="mt-1 block text-xs leading-5 text-slate-500">{{ item.note }}</span>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
 
-    <h2>Featured</h2>
-    <ul>
-        {% for product in featured %}
-            <li><a href="{{ path('app_product_show', {slug: product.slug}) }}">{{ product.name }}</a>: PHP {{ product.effectivePrice }}</li>
-        {% else %}
-            <li>No featured products yet</li>
-        {% endfor %}
-    </ul>
+    <section class="bg-slate-50 py-14 sm:py-20" id="shop">
+        <div class="container">
+            {{ include('home/_heading.html.twig', {eyebrow: 'Top picks', title: 'Tools people trust'}) }}
+            <div class="no-scrollbar mt-7 flex gap-2 overflow-x-auto pb-2">
+                <span class="flex h-10 shrink-0 items-center rounded-lg bg-navy-800 px-4 text-sm font-bold text-white">Featured</span>
+                {% for tab in [
+                    {name: 'Power tools', url: catalog_url('power-tools-and-workshop', 'power-tools')},
+                    {name: 'Hand tools', url: catalog_url('hand-tools')},
+                    {name: 'Paint & supplies', url: catalog_url('paint-coatings-and-adhesives', 'paint-and-finishes')},
+                    {name: 'Electrical', url: catalog_url('electrical-lighting-and-power')},
+                ] %}
+                    <a class="flex h-10 shrink-0 items-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold transition hover:border-navy-300" href="{{ tab.url }}">{{ tab.name }}</a>
+                {% endfor %}
+            </div>
+            {% if featured %}
+                <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+                    {% for product in featured %}{{ include('_partials/product_card.html.twig') }}{% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state mt-6">
+                    <h3 class="text-lg font-bold text-navy-950">No featured products yet</h3>
+                    <a class="mt-5 inline-block font-bold text-navy-700" href="{{ path('app_catalog') }}">Browse the catalog</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
 
-    <h2>On sale</h2>
-    <ul>
-        {% for product in on_sale %}
-            <li><a href="{{ path('app_product_show', {slug: product.slug}) }}">{{ product.name }}</a>: <s>PHP {{ product.price }}</s> PHP {{ product.salePrice }}</li>
-        {% else %}
-            <li>No sales right now</li>
-        {% endfor %}
-    </ul>
+    <section class="container py-14 sm:py-20">
+        <div class="grid overflow-hidden rounded-2xl bg-navy-100 lg:grid-cols-2">
+            <div class="relative min-h-72 lg:min-h-[440px]"><img alt="Circular saw in use" class="absolute inset-0 h-full w-full object-cover" loading="lazy" src="{{ asset('images/saw.jpg') }}" width="900" height="506"></div>
+            <div class="flex flex-col justify-center p-7 sm:p-10 lg:p-16">
+                <p class="eyebrow">Juanico material calculator</p>
+                <h2 class="mt-3 text-3xl font-black tracking-tight text-navy-950 sm:text-4xl">Start confident.<br>Finish proud.</h2>
+                <p class="mt-5 max-w-lg leading-7 text-slate-600">Work out how much paint, tile or lumber your project needs before you buy, so you get it right the first time.</p>
+                <a class="mt-7 flex items-center gap-2 font-bold text-navy-700" href="{{ path('app_material_calculator') }}">Open the calculator {{ include('_partials/icon.html.twig', {name: 'arrow'}) }}</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="border-y border-slate-200">
+        <div class="container grid divide-y divide-slate-200 py-4 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {% for item in [
+                {icon: 'delivery', title: 'Dependable delivery', text: 'We deliver to any address you give us'},
+                {icon: 'shield', title: 'Products you can trust', text: 'Well-known brands at honest prices'},
+                {icon: 'phone', title: 'Real help from real people', text: 'Send us a message any time'},
+            ] %}
+                <div class="flex items-center gap-4 px-2 py-6 sm:px-6">
+                    <span class="grid size-11 shrink-0 place-items-center rounded-full bg-navy-50 text-navy-700">{{ include('_partials/icon.html.twig', {name: item.icon}) }}</span>
+                    <div><p class="text-sm font-bold text-navy-950">{{ item.title }}</p><p class="mt-1 text-xs leading-5 text-slate-500">{{ item.text }}</p></div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
 {% endblock %}

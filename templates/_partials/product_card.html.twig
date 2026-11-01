@@ -1,0 +1,48 @@
+{# Square, uncropped photos suit white-background product shots better than the mockup's 4:3 crop. #}
+{% set url = path('app_product_show', {slug: product.slug}) %}
+{% set on_sale = product.salePrice and product.salePrice < product.price %}
+<article class="group flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <div class="relative aspect-square overflow-hidden bg-white">
+        <a href="{{ url }}" class="block h-full" tabindex="-1" aria-hidden="true">
+            {% if product.image %}
+                <img alt="" class="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105" loading="lazy" src="{{ asset('uploads/products/' ~ product.image) }}" width="800" height="800">
+            {% else %}
+                <span class="grid h-full place-items-center bg-navy-50 text-navy-200">{{ include('_partials/icon.html.twig', {name: 'tools', class: 'size-16'}) }}</span>
+            {% endif %}
+        </a>
+        {% if product.stock <= 0 %}
+            <span class="absolute left-3 top-3 rounded-md bg-slate-800 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white sm:text-xs">Out of stock</span>
+        {% elseif on_sale %}
+            <span class="absolute left-3 top-3 rounded-md bg-amber-400 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-950 sm:text-xs">Sale</span>
+        {% elseif product.stock <= product.lowStockThreshold %}
+            <span class="absolute left-3 top-3 rounded-md bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-navy-800 shadow-sm sm:text-xs">Only {{ product.stock }} left</span>
+        {% endif %}
+        {% if app.user %}
+            <form method="post" action="{{ path('app_wishlist_add', {id: product.id}) }}" class="absolute right-3 top-3">
+                <input type="hidden" name="_token" value="{{ csrf_token('wishlist') }}">
+                <button aria-label="Add {{ product.name }} to wishlist" class="grid size-9 place-items-center rounded-full bg-white text-slate-500 shadow-sm hover:text-red-600">{{ include('_partials/icon.html.twig', {name: 'heart', class: 'size-4'}) }}</button>
+            </form>
+        {% endif %}
+    </div>
+    <div class="flex flex-1 flex-col p-3 sm:p-5">
+        <p class="min-h-4 text-[11px] font-bold uppercase tracking-wider text-navy-600">{{ product.brand ? product.brand.name }}</p>
+        <h3 class="mt-1.5 min-h-10 text-sm font-bold leading-5 text-navy-950 sm:text-base"><a href="{{ url }}" class="hover:text-navy-700">{{ product.name }}</a></h3>
+        <div class="mt-auto flex items-end justify-between gap-2 pt-4">
+            <div>
+                <p class="text-base font-black tabular-nums text-navy-950 sm:text-lg">{{ product.effectivePrice|peso }}</p>
+                <p class="text-xs text-slate-400">
+                    {% if on_sale %}<span class="line-through">{{ product.price|peso }}</span>{% else %}per {{ product.unit }}{% endif %}
+                </p>
+            </div>
+            {% if product.stock > 0 and app.user %}
+                <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button aria-label="Add {{ product.name }} to cart" class="grid size-10 shrink-0 place-items-center rounded-lg bg-navy-800 text-white hover:bg-navy-700">{{ include('_partials/icon.html.twig', {name: 'cart'}) }}</button>
+                </form>
+            {% elseif product.stock > 0 %}
+                <a href="{{ path('app_login') }}" aria-label="Log in to buy {{ product.name }}" class="grid size-10 shrink-0 place-items-center rounded-lg bg-navy-800 text-white hover:bg-navy-700">{{ include('_partials/icon.html.twig', {name: 'cart'}) }}</a>
+            {% endif %}
+        </div>
+    </div>
+</article>

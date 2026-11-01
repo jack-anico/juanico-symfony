@@ -1,0 +1,7 @@
+<div class="flex items-end justify-between">
+    <div>
+        <p class="eyebrow">{{ eyebrow }}</p>
+        <h2 class="mt-2 text-3xl font-black tracking-tight text-navy-950">{{ title }}</h2>
+    </div>
+    <a class="hidden items-center gap-2 text-sm font-bold text-navy-700 sm:flex" href="{{ path('app_catalog') }}">View all {{ include('_partials/icon.html.twig', {name: 'arrow', class: 'size-4'}) }}</a>
+</div>
