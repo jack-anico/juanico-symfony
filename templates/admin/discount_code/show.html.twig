@@ -1,11 +1,11 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}DiscountCode{% endblock %}
 
 {% block body %}
     <h1>DiscountCode</h1>
 
-    <table class="table">
+    <div class="table-scroll"><table class="table">
         <tbody>
             <tr>
                 <th>Id</th>
@@ -44,7 +44,7 @@
                 <td>{{ discount_code.isActive ? 'Yes' : 'No' }}</td>
             </tr>
         </tbody>
-    </table>
+    </table></div>
 
     <a href="{{ path('app_admin_discount_code_index') }}">back to list</a>
 

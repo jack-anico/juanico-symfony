@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block main %}
+    <div class="container grid grid-cols-[minmax(0,1fr)] gap-8 py-8 lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <aside class="min-w-0 print:hidden">
+            <nav aria-label="Admin" class="no-scrollbar flex gap-1 overflow-x-auto text-sm font-bold text-navy-900 lg:sticky lg:top-24 lg:flex-col">
+                {% set current = app.current_route|default('') %}
+                {% for item in [
+                    {label: 'Dashboard', route: 'app_admin_dashboard', match: 'app_admin_dashboard'},
+                    {label: 'Orders', route: 'app_admin_order_index', match: 'app_admin_order'},
+                    {label: 'Payments', route: 'app_admin_payment_index', match: 'app_admin_payment'},
+                    {label: 'Products', route: 'app_admin_product_index', match: 'app_admin_product'},
+                    {label: 'Categories', route: 'app_admin_category_index', match: 'app_admin_category'},
+                    {label: 'Brands', route: 'app_admin_brand_index', match: 'app_admin_brand'},
+                    {label: 'Discount codes', route: 'app_admin_discount_code_index', match: 'app_admin_discount_code'},
+                    {label: 'Reviews', route: 'app_admin_review_index', match: 'app_admin_review'},
+                    {label: 'Inquiries', route: 'app_admin_inquiry_index', match: 'app_admin_inquiry'},
+                    {label: 'Users', route: 'app_admin_user_index', match: 'app_admin_user'},
+                    {label: 'Sales report', route: 'app_admin_report', match: 'app_admin_report'},
+                    {label: 'Settings', route: 'app_admin_platform_setting_index', match: 'app_admin_platform_setting'},
+                    {label: 'Audit log', route: 'app_admin_audit_log_index', match: 'app_admin_audit_log'},
+                ] %}
+                    <a href="{{ path(item.route) }}" class="shrink-0 rounded-lg px-3 py-2 {{ current starts with item.match ? 'bg-navy-800 text-white' : 'hover:bg-navy-50' }}">{{ item.label }}</a>
+                {% endfor %}
+            </nav>
+        </aside>
+        <div class="content min-w-0">
+            {% block body %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}

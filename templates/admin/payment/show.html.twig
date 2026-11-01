@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Payment{% endblock %}
 
@@ -10,14 +10,14 @@
     <ul>
         <li>Method: {{ payment.method|upper }}</li>
         <li>Status: {{ payment.status|capitalize }}</li>
-        <li>Amount: PHP {{ payment.amount }}</li>
+        <li>Amount: {{ (payment.amount)|peso }}</li>
         <li>Reference: {{ payment.reference }}</li>
         <li>Paid: {{ payment.paidAt ? payment.paidAt|date('Y-m-d H:i') : 'Not paid' }}</li>
         {% if payment.proofFile %}<li><a href="{{ asset('uploads/proofs/' ~ payment.proofFile) }}">View proof</a></li>{% endif %}
     </ul>
 
     <h2>History</h2>
-    <table>
+    <div class="table-scroll"><table>
         <thead><tr><th>When</th><th>From</th><th>To</th><th>By</th><th>Note</th></tr></thead>
         <tbody>
             {% for row in history %}
@@ -30,5 +30,5 @@
                 </tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 {% endblock %}

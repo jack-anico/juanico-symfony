@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Inquiries{% endblock %}
 
@@ -13,7 +13,7 @@
         {% endfor %}
     </p>
 
-    <table>
+    <div class="table-scroll"><table>
         <thead><tr><th>Subject</th><th>From</th><th>Status</th><th>Received</th></tr></thead>
         <tbody>
             {% for inquiry in inquiries %}
@@ -27,7 +27,7 @@
                 <tr><td colspan="4">No inquiries</td></tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 
     {{ knp_pagination_render(inquiries) }}
 {% endblock %}

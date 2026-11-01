@@ -6,15 +6,15 @@
                 <td>{{ item.product.name }}</td>
                 <td>{{ item.product.sku }}</td>
                 <td>{{ item.quantity }}</td>
-                <td>PHP {{ item.unitPrice }}</td>
-                <td>PHP {{ item.lineTotal }}</td>
+                <td>{{ (item.unitPrice)|peso }}</td>
+                <td>{{ (item.lineTotal)|peso }}</td>
             </tr>
         {% endfor %}
     </tbody>
     <tfoot>
-        <tr><th colspan="4">Subtotal</th><td>PHP {{ order.subtotal }}</td></tr>
-        <tr><th colspan="4">Shipping</th><td>PHP {{ order.shippingFee }}</td></tr>
-        <tr><th colspan="4">Discount</th><td>PHP {{ order.discount }}</td></tr>
-        <tr><th colspan="4">Total</th><td>PHP {{ order.total }}</td></tr>
+        <tr><th colspan="4">Subtotal</th><td>{{ (order.subtotal)|peso }}</td></tr>
+        <tr><th colspan="4">Shipping</th><td>{{ (order.shippingFee)|peso }}</td></tr>
+        <tr><th colspan="4">Discount</th><td>{{ (order.discount)|peso }}</td></tr>
+        <tr><th colspan="4">Total</th><td>{{ (order.total)|peso }}</td></tr>
     </tfoot>
 </table>

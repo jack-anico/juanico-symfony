@@ -1,11 +1,11 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}DiscountCode index{% endblock %}
 
 {% block body %}
     <h1>DiscountCode index</h1>
 
-    <table class="table">
+    <div class="table-scroll"><table class="table">
         <thead>
             <tr>
                 <th>Id</th>
@@ -43,7 +43,7 @@
             </tr>
         {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 
     <a href="{{ path('app_admin_discount_code_new') }}">Create new</a>
 {% endblock %}
