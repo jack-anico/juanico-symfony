@@ -1,21 +1,27 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}My Wishlist{% endblock %}
+{% block title %}My Wishlist | Juanico Hardware{% endblock %}
 
 {% block body %}
     <h1>My Wishlist</h1>
 
-    <ul>
-        {% for item in items %}
-            <li>
-                <a href="{{ path('app_product_show', {slug: item.product.slug}) }}">{{ item.product.name }}</a>: PHP {{ item.product.effectivePrice }}
-                <form method="post" action="{{ path('app_wishlist_remove', {id: item.id}) }}" style="display:inline">
-                    <input type="hidden" name="_token" value="{{ csrf_token('wishlist') }}">
-                    <button>Remove</button>
-                </form>
-            </li>
-        {% else %}
-            <li>Your wishlist is empty</li>
-        {% endfor %}
-    </ul>
+    {% if items %}
+        <div class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+            {% for item in items %}
+                <div>
+                    {{ include('_partials/product_card.html.twig', {product: item.product}) }}
+                    <form method="post" action="{{ path('app_wishlist_remove', {id: item.id}) }}" class="mt-2 text-center">
+                        <input type="hidden" name="_token" value="{{ csrf_token('wishlist') }}">
+                        <button class="text-sm font-bold text-red-700 hover:underline">Remove</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <span class="flex justify-center text-slate-400">{{ include('_partials/icon.html.twig', {name: 'heart', class: 'size-8'}) }}</span>
+            <h3>Your wishlist is empty</h3>
+            <a class="button-primary mt-3" href="{{ path('app_catalog') }}">Browse the catalog</a>
+        </div>
+    {% endif %}
 {% endblock %}

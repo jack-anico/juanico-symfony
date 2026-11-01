@@ -7,4 +7,4 @@ knp_paginator:
         filter_value_name: knp_filter_value
         page_name: page
     template:
-        pagination: '@KnpPaginator/Pagination/sliding.html.twig'
+        pagination: '@KnpPaginator/Pagination/tailwindcss_pagination.html.twig'
