@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Orders{% endblock %}
 
@@ -7,7 +7,7 @@
 
     <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
 
-    <table>
+    <div class="table-scroll"><table>
         <thead>
             <tr><th>Order</th><th>Date</th><th>Customer</th><th>Status</th><th>Payment</th><th>Total</th></tr>
         </thead>
@@ -19,13 +19,13 @@
                     <td>{{ order.customer.fullName }}</td>
                     <td>{{ order.status|capitalize }}</td>
                     <td>{{ order.payment ? order.payment.method|upper ~ ' (' ~ order.payment.status ~ ')' }}</td>
-                    <td>PHP {{ order.total }}</td>
+                    <td>{{ (order.total)|peso }}</td>
                 </tr>
             {% else %}
                 <tr><td colspan="6">No orders yet</td></tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 
     {{ knp_pagination_render(orders) }}
 {% endblock %}

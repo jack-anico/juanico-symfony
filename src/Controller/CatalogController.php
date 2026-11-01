@@ -21,9 +21,11 @@ final class CatalogController extends AbstractController
         $form->handleRequest($request);
 
         $filters = $form->isSubmitted() && $form->isValid() ? $form->getData() : [];
+        $deals = $request->query->getBoolean('deals');
 
         return $this->render('catalog/index.html.twig', [
             'form' => $form,
+            'deals' => $deals,
             'products' => $paginator->paginate($products->search(
                 $filters['q'] ?? null,
                 ($filters['category'] ?? null)?->getId(),
@@ -31,6 +33,7 @@ final class CatalogController extends AbstractController
                 $filters['minPrice'] ?? null,
                 $filters['maxPrice'] ?? null,
                 $filters['sort'] ?? null,
+                $deals,
             ), max(1, $request->query->getInt('page', 1)), 20, ['wrap-queries' => true]),
         ]);
     }

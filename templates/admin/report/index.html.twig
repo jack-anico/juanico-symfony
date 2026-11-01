@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Sales Report{% endblock %}
 
@@ -14,31 +14,31 @@
     </form>
 
     <p>
-        Revenue: PHP {{ revenue }} | Orders: {{ order_count }} |
+        Revenue: {{ (revenue)|peso }} | Orders: {{ order_count }} |
         <a href="{{ path('app_admin_report_export', {from: from|date('Y-m-d'), to: to|date('Y-m-d')}) }}">Export CSV</a>
     </p>
 
     <h2>By product</h2>
-    <table>
+    <div class="table-scroll"><table>
         <thead><tr><th>SKU</th><th>Product</th><th>Units</th><th>Revenue</th></tr></thead>
         <tbody>
             {% for row in by_product %}
-                <tr><td>{{ row.sku }}</td><td>{{ row.name }}</td><td>{{ row.units }}</td><td>PHP {{ row.revenue }}</td></tr>
+                <tr><td>{{ row.sku }}</td><td>{{ row.name }}</td><td>{{ row.units }}</td><td>{{ (row.revenue)|peso }}</td></tr>
             {% else %}
                 <tr><td colspan="4">No sales in this period</td></tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 
     <h2>By category</h2>
-    <table>
+    <div class="table-scroll"><table>
         <thead><tr><th>Category</th><th>Revenue</th></tr></thead>
         <tbody>
             {% for row in by_category %}
-                <tr><td>{{ row.name }}</td><td>PHP {{ row.revenue }}</td></tr>
+                <tr><td>{{ row.name }}</td><td>{{ (row.revenue)|peso }}</td></tr>
             {% else %}
                 <tr><td colspan="2">No sales in this period</td></tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 {% endblock %}

@@ -1,37 +1,43 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Material Calculator{% endblock %}
+{% block title %}Material Calculator | Juanico Hardware{% endblock %}
 
 {% block body %}
     <h1>Material Calculator</h1>
 
     <p>These are estimates. Please check with our staff for large projects.</p>
 
-    {% if result %}<p id="result"><strong>{{ result }}</strong></p>{% endif %}
-    {% if invalid %}<p id="result">Please enter values greater than zero.</p>{% endif %}
+    {% if result %}<p id="result" class="panel !border-navy-200 !bg-navy-50"><strong class="text-navy-950">{{ result }}</strong></p>{% endif %}
+    {% if invalid %}<p id="result" class="panel form-errors">Please enter values greater than zero.</p>{% endif %}
 
-    <h2>Paint</h2>
-    <form method="get">
-        <input type="hidden" name="type" value="paint">
-        <label>Wall area (square meters) <input type="number" name="area" min="0.01" step="0.01" required></label>
-        <label>Coats <input type="number" name="coats" value="2" min="1" required></label>
-        <button>Calculate paint</button>
-    </form>
-
-    <h2>Tiles</h2>
-    <form method="get">
-        <input type="hidden" name="type" value="tile">
-        <label>Floor area (square meters) <input type="number" name="area" min="0.01" step="0.01" required></label>
-        <label>Tile length (cm) <input type="number" name="tile_length" min="0.1" step="0.1" required></label>
-        <label>Tile width (cm) <input type="number" name="tile_width" min="0.1" step="0.1" required></label>
-        <button>Calculate tiles</button>
-    </form>
-
-    <h2>Lumber</h2>
-    <form method="get">
-        <input type="hidden" name="type" value="lumber">
-        <label>Total length needed (meters) <input type="number" name="total_length" min="0.01" step="0.01" required></label>
-        <label>Length of each piece (meters) <input type="number" name="piece_length" min="0.01" step="0.01" required></label>
-        <button>Calculate lumber</button>
-    </form>
+    <div class="grid gap-5 lg:grid-cols-3">
+        <div class="panel">
+            <h2 class="!mt-0">Paint</h2>
+            <form method="get">
+                <input type="hidden" name="type" value="paint">
+                <div class="form-row"><label>Wall area (square meters) <input class="mt-1.5" type="number" name="area" min="0.01" step="0.01" required></label></div>
+                <div class="form-row"><label>Coats <input class="mt-1.5" type="number" name="coats" value="2" min="1" required></label></div>
+                <button class="button-primary w-full">Calculate paint</button>
+            </form>
+        </div>
+        <div class="panel">
+            <h2 class="!mt-0">Tiles</h2>
+            <form method="get">
+                <input type="hidden" name="type" value="tile">
+                <div class="form-row"><label>Floor area (square meters) <input class="mt-1.5" type="number" name="area" min="0.01" step="0.01" required></label></div>
+                <div class="form-row"><label>Tile length (cm) <input class="mt-1.5" type="number" name="tile_length" min="0.1" step="0.1" required></label></div>
+                <div class="form-row"><label>Tile width (cm) <input class="mt-1.5" type="number" name="tile_width" min="0.1" step="0.1" required></label></div>
+                <button class="button-primary w-full">Calculate tiles</button>
+            </form>
+        </div>
+        <div class="panel">
+            <h2 class="!mt-0">Lumber</h2>
+            <form method="get">
+                <input type="hidden" name="type" value="lumber">
+                <div class="form-row"><label>Total length needed (meters) <input class="mt-1.5" type="number" name="total_length" min="0.01" step="0.01" required></label></div>
+                <div class="form-row"><label>Length of each piece (meters) <input class="mt-1.5" type="number" name="piece_length" min="0.01" step="0.01" required></label></div>
+                <button class="button-primary w-full">Calculate lumber</button>
+            </form>
+        </div>
+    </div>
 {% endblock %}

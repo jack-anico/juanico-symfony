@@ -1,11 +1,11 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Brand{% endblock %}
 
 {% block body %}
     <h1>Brand</h1>
 
-    <table class="table">
+    <div class="table-scroll"><table class="table">
         <tbody>
             <tr>
                 <th>Id</th>
@@ -24,7 +24,7 @@
                 <td>{{ brand.isActive ? 'Yes' : 'No' }}</td>
             </tr>
         </tbody>
-    </table>
+    </table></div>
 
     <a href="{{ path('app_admin_brand_index') }}">back to list</a>
 

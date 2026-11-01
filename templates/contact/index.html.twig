@@ -1,12 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Contact Us{% endblock %}
+{% block title %}Contact Us | Juanico Hardware{% endblock %}
 
 {% block body %}
-    <h1>Contact Us</h1>
+<div class="panel mx-auto max-w-xl !p-8">
+    <h1 class="!mb-2">Contact Us</h1>
+    <p class="text-sm text-slate-500">Send us a message and we'll get back to you.</p>
 
     {{ form_start(form) }}
         {{ form_widget(form) }}
-        <button>Send message</button>
+        <button class="button-primary w-full">Send message</button>
     {{ form_end(form) }}
+</div>
 {% endblock %}

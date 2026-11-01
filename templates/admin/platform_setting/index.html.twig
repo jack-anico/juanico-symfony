@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Platform Settings{% endblock %}
 
@@ -7,7 +7,7 @@
 
     <p><a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a></p>
 
-    <table>
+    <div class="table-scroll"><table>
         <thead><tr><th>Setting</th><th>Value</th><th>Description</th><th></th></tr></thead>
         <tbody>
             {% for setting in platform_settings %}
@@ -21,5 +21,5 @@
                 <tr><td colspan="4">No settings found. Load PlatformSettingFixtures.</td></tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 {% endblock %}

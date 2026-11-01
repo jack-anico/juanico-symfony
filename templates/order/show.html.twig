@@ -1,48 +1,61 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Order {{ order.orderNumber }}{% endblock %}
+{% block title %}Order {{ order.orderNumber }} | Juanico Hardware{% endblock %}
 
 {% block body %}
+    <p class="text-sm"><a href="{{ path('app_order_index') }}">Back to my orders</a></p>
     <h1>Order {{ order.orderNumber }}</h1>
 
-    <p><a href="{{ path('app_order_index') }}">Back to my orders</a></p>
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div class="min-w-0">
+            <div class="table-scroll">{{ include('admin/order/invoice_lines.html.twig') }}</div>
 
-    <ul>
-        <li>Status: {{ order.status|capitalize }}</li>
-        <li>Placed: {{ order.createdAt|date('Y-m-d H:i') }}</li>
-        {% if order.payment %}
-            <li>Payment: {{ order.payment.method|upper }} ({{ order.payment.status }})</li>
-            {% if order.payment.reference %}<li>Payment reference: {{ order.payment.reference }}</li>{% endif %}
-        {% endif %}
-        <li>Shipping: {{ order.shippingMethod|capitalize }}</li>
-        {% if order.trackingNumber %}<li>Tracking number: {{ order.trackingNumber }}</li>{% endif %}
-        {% if order.deliveredAt %}<li>Delivered: {{ order.deliveredAt|date('Y-m-d H:i') }}</li>{% endif %}
-        {% if order.cancelReason %}<li>Cancel reason: {{ order.cancelReason }}</li>{% endif %}
-    </ul>
+            {% if proof_form %}
+                <div class="panel mb-5">
+                    <h2 class="!mt-0">Your payment proof was not accepted</h2>
+                    {{ form_start(proof_form) }}
+                        {{ form_widget(proof_form) }}
+                        <button class="button-primary">Upload new proof</button>
+                    {{ form_end(proof_form) }}
+                </div>
+            {% endif %}
 
-    {{ include('admin/order/invoice_lines.html.twig') }}
+            {% if order.status == 'pending' %}
+                <div class="panel">
+                    <h2 class="!mt-0">Cancel this order</h2>
+                    <form method="post" action="{{ path('app_order_cancel', {id: order.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ order.id) }}">
+                        <div class="form-row"><label>Reason (optional) <textarea class="mt-1.5" name="reason"></textarea></label></div>
+                        <button class="button-secondary">Cancel order</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
 
-    {% if proof_form %}
-        <h2>Your payment proof was not accepted</h2>
-        {{ form_start(proof_form) }}
-            {{ form_widget(proof_form) }}
-            <button>Upload new proof</button>
-        {{ form_end(proof_form) }}
-    {% endif %}
-
-    {% if order.status == 'pending' %}
-        <h2>Cancel this order</h2>
-        <form method="post" action="{{ path('app_order_cancel', {id: order.id}) }}">
-            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ order.id) }}">
-            <label>Reason (optional) <textarea name="reason"></textarea></label>
-            <button>Cancel order</button>
-        </form>
-    {% endif %}
-
-    <h2>Order history</h2>
-    <ul>
-        {% for row in history %}
-            <li>{{ row.createdAt|date('Y-m-d H:i') }}: {{ row.toStatus|capitalize }}</li>
-        {% endfor %}
-    </ul>
+        <aside class="space-y-5">
+            <div class="panel text-sm">
+                <h2 class="!mt-0">Details</h2>
+                <ul class="space-y-2">
+                    <li>Status: <span class="badge {{ order.status == 'delivered' ? 'badge-green' : (order.status == 'cancelled' ? 'badge-red' : '') }}">{{ order.status|capitalize }}</span></li>
+                    <li>Placed: {{ order.createdAt|date('M j, Y g:i A') }}</li>
+                    {% if order.payment %}
+                        <li>Payment: {{ order.payment.method|upper }} ({{ order.payment.status }})</li>
+                        {% if order.payment.reference %}<li>Payment reference: {{ order.payment.reference }}</li>{% endif %}
+                    {% endif %}
+                    <li>Shipping: {{ order.shippingMethod|capitalize }}</li>
+                    {% if order.trackingNumber %}<li>Tracking number: {{ order.trackingNumber }}</li>{% endif %}
+                    {% if order.deliveredAt %}<li>Delivered: {{ order.deliveredAt|date('M j, Y g:i A') }}</li>{% endif %}
+                    {% if order.cancelReason %}<li>Cancel reason: {{ order.cancelReason }}</li>{% endif %}
+                </ul>
+            </div>
+            <div class="panel text-sm">
+                <h2 class="!mt-0">Order history</h2>
+                <ol class="space-y-2 border-l-2 border-navy-100 pl-4">
+                    {% for row in history %}
+                        <li><span class="font-bold text-navy-950">{{ row.toStatus|capitalize }}</span><br><span class="text-xs text-slate-500">{{ row.createdAt|date('M j, Y g:i A') }}</span></li>
+                    {% endfor %}
+                </ol>
+            </div>
+        </aside>
+    </div>
 {% endblock %}

@@ -1,11 +1,11 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Product{% endblock %}
 
 {% block body %}
     <h1>Product</h1>
 
-    <table class="table">
+    <div class="table-scroll"><table class="table">
         <tbody>
             <tr>
                 <th>Id</th>
@@ -72,7 +72,7 @@
                 <td>{{ product.createdAt ? product.createdAt|date('Y-m-d H:i:s') : '' }}</td>
             </tr>
         </tbody>
-    </table>
+    </table></div>
 
     <a href="{{ path('app_admin_product_index') }}">back to list</a>
 

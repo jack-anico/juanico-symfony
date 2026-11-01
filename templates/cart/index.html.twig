@@ -1,40 +1,47 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Your Cart{% endblock %}
+{% block title %}Your Cart | Juanico Hardware{% endblock %}
 
 {% block body %}
     <h1>Your Cart</h1>
 
     {% if items %}
-        <table>
-            <thead><tr><th>Product</th><th>Price</th><th>Quantity</th><th>Line total</th><th></th></tr></thead>
-            <tbody>
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div class="space-y-3">
                 {% for item in items %}
-                    <tr>
-                        <td><a href="{{ path('app_product_show', {slug: item.product.slug}) }}">{{ item.product.name }}</a></td>
-                        <td>PHP {{ item.product.effectivePrice }}</td>
-                        <td>
-                            <form method="post" action="{{ path('app_cart_update', {id: item.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
-                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}">
-                                <button>Update</button>
-                            </form>
-                        </td>
-                        <td>PHP {{ item.lineTotal }}</td>
-                        <td>
-                            <form method="post" action="{{ path('app_cart_remove', {id: item.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
-                                <button>Remove</button>
-                            </form>
-                        </td>
-                    </tr>
+                    <div class="panel flex flex-wrap items-center gap-4">
+                        <div class="size-20 shrink-0 overflow-hidden rounded-lg bg-navy-50">
+                            {% if item.product.image %}<img src="{{ asset('uploads/products/' ~ item.product.image) }}" alt="" class="h-full w-full bg-white object-contain" width="80" height="80">{% endif %}
+                        </div>
+                        <div class="min-w-40 flex-1">
+                            <a href="{{ path('app_product_show', {slug: item.product.slug}) }}">{{ item.product.name }}</a>
+                            <p class="!mb-0 text-sm text-slate-500">{{ item.product.effectivePrice|peso }} / {{ item.product.unit }}</p>
+                        </div>
+                        <form method="post" action="{{ path('app_cart_update', {id: item.id}) }}" class="flex items-center gap-2">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+                            <input class="!w-20" type="number" name="quantity" aria-label="Quantity of {{ item.product.name }}" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}">
+                            <button class="button-secondary !min-h-11">Update</button>
+                        </form>
+                        <p class="!mb-0 w-28 text-right font-black tabular-nums text-navy-950">{{ item.lineTotal|peso }}</p>
+                        <form method="post" action="{{ path('app_cart_remove', {id: item.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+                            <button class="text-sm font-bold text-red-700 hover:underline">Remove</button>
+                        </form>
+                    </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
 
-        <p>Subtotal: PHP {{ subtotal }}</p>
-        <p><a href="{{ path('app_checkout') }}">Proceed to checkout</a></p>
+            <aside class="panel h-fit">
+                <div class="flex justify-between font-bold text-navy-950"><span>Subtotal</span><span class="tabular-nums">{{ subtotal|peso }}</span></div>
+                <p class="mt-2 text-xs text-slate-500">Delivery and vouchers are worked out at checkout.</p>
+                <a class="button-primary w-full" href="{{ path('app_checkout') }}">Proceed to checkout</a>
+            </aside>
+        </div>
     {% else %}
-        <p>Your cart is empty. <a href="{{ path('app_catalog') }}">Browse the catalog</a>.</p>
+        <div class="empty-state">
+            <span class="flex justify-center text-slate-400">{{ include('_partials/icon.html.twig', {name: 'cart', class: 'size-8'}) }}</span>
+            <h3>Your cart is empty.</h3>
+            <a class="button-primary mt-3" href="{{ path('app_catalog') }}">Browse the catalog</a>
+        </div>
     {% endif %}
 {% endblock %}

@@ -1,13 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Register | Juanico Hardware{% endblock %}
 
 {% block body %}
+<div class="panel mx-auto max-w-md !p-8">
     {% for flash_error in app.flashes('verify_email_error') %}
-        <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+        <div class="form-errors" role="alert">{{ flash_error }}</div>
     {% endfor %}
 
-    <h1>Register</h1>
+    <h1 class="!mb-2">Register</h1>
+    <p class="text-sm text-slate-500">Already have an account? <a href="{{ path('app_login') }}">Sign in</a></p>
 
     {{ form_errors(registrationForm) }}
 
@@ -20,6 +22,7 @@
         }) }}
         {{ form_row(registrationForm.agreeTerms) }}
 
-        <button type="submit" class="btn">Register</button>
+        <button type="submit" class="button-primary w-full">Register</button>
     {{ form_end(registrationForm) }}
+</div>
 {% endblock %}

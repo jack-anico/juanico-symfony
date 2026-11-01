@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/layout.html.twig' %}
 
 {% block title %}Order {{ order.orderNumber }}{% endblock %}
 
@@ -40,7 +40,7 @@
     {% endif %}
 
     <h2>Status history</h2>
-    <table>
+    <div class="table-scroll"><table>
         <thead><tr><th>When</th><th>From</th><th>To</th><th>By</th><th>Note</th></tr></thead>
         <tbody>
             {% for row in history %}
@@ -53,5 +53,5 @@
                 </tr>
             {% endfor %}
         </tbody>
-    </table>
+    </table></div>
 {% endblock %}

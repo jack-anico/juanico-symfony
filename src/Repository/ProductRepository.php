@@ -33,6 +33,7 @@ class ProductRepository extends ServiceEntityRepository
         ?string $minPrice = null,
         ?string $maxPrice = null,
         ?string $sort = null,
+        bool $onSaleOnly = false,
     ): Query {
         $qb = $this->activeProducts()
             ->addSelect('COALESCE(p.salePrice, p.price) AS HIDDEN effectivePrice')
@@ -56,6 +57,10 @@ class ProductRepository extends ServiceEntityRepository
             $qb->andWhere('COALESCE(p.salePrice, p.price) <= :maxPrice')->setParameter('maxPrice', $maxPrice);
         }
 
+        if ($onSaleOnly) {
+            $qb->andWhere('p.salePrice IS NOT NULL AND p.salePrice < p.price');
+        }
+
         match ($sort) {
             'price_asc' => $qb->orderBy('effectivePrice', 'ASC'),
             'price_desc' => $qb->orderBy('effectivePrice', 'DESC'),
@@ -70,6 +75,11 @@ class ProductRepository extends ServiceEntityRepository
     public function adminListQuery(): Query
     {
         return $this->createQueryBuilder('p')->orderBy('p.id', 'DESC')->getQuery();
+    }
+
+    public function countActive(): int
+    {
+        return (int) $this->activeProducts()->select('COUNT(p.id)')->getQuery()->getSingleScalarResult();
     }
 
     /** @return Product[] */
