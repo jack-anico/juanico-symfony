@@ -7,21 +7,23 @@
 
     <p><a href="{{ path('app_admin_inquiry_index') }}">Back to inquiries</a></p>
 
-    <ul>
-        <li>From: {{ inquiry.name }} ({{ inquiry.email }})</li>
-        <li>Status: {{ inquiry.status|capitalize }}</li>
-        <li>Received: {{ inquiry.createdAt|date('Y-m-d H:i') }}</li>
-    </ul>
+    <dl class="detail-list panel max-w-xl">
+        <div><dt>From</dt><dd>{{ inquiry.name }} ({{ inquiry.email }})</dd></div>
+        <div><dt>Status</dt><dd>{{ inquiry.status|capitalize }}</dd></div>
+        <div><dt>Received</dt><dd>{{ inquiry.createdAt|date('Y-m-d H:i') }}</dd></div>
+    </dl>
 
-    <p>{{ inquiry.message|nl2br }}</p>
+    <div class="panel mb-5 max-w-2xl"><p class="!mb-0">{{ inquiry.message|nl2br }}</p></div>
 
-    {% for status, label in {read: 'Mark as read', resolved: 'Mark as resolved'} %}
-        {% if inquiry.status != status %}
-            <form method="post" action="{{ path('app_admin_inquiry_status', {id: inquiry.id}) }}" style="display:inline">
-                <input type="hidden" name="_token" value="{{ csrf_token('inquiry' ~ inquiry.id) }}">
-                <input type="hidden" name="status" value="{{ status }}">
-                <button>{{ label }}</button>
-            </form>
-        {% endif %}
-    {% endfor %}
+    <div class="action-row">
+        {% for status, label in {read: 'Mark as read', resolved: 'Mark as resolved'} %}
+            {% if inquiry.status != status %}
+                <form method="post" action="{{ path('app_admin_inquiry_status', {id: inquiry.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('inquiry' ~ inquiry.id) }}">
+                    <input type="hidden" name="status" value="{{ status }}">
+                    <button>{{ label }}</button>
+                </form>
+            {% endif %}
+        {% endfor %}
+    </div>
 {% endblock %}

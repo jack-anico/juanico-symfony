@@ -1,0 +1,22 @@
+{# Stand-alone on purpose: base.html.twig queries the database, which may be what failed. #}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Something went wrong | Juanico Hardware</title>
+        <style>
+            body { margin: 0; display: grid; min-height: 100vh; place-items: center; background: #f3f7fc; color: #334155; font-family: Inter, system-ui, sans-serif; text-align: center; }
+            main { max-width: 32rem; padding: 2rem 1rem; }
+            h1 { color: #0a1628; font-size: 1.875rem; font-weight: 900; }
+            a { display: inline-block; margin-top: 1rem; border-radius: .5rem; background: #14305c; padding: .875rem 1.25rem; color: white; font-weight: 700; text-decoration: none; }
+        </style>
+    </head>
+    <body>
+        <main>
+            <h1>Something went wrong</h1>
+            <p>This is on our side, not yours. Please try again in a moment.</p>
+            <a href="/">Go home</a>
+        </main>
+    </body>
+</html>

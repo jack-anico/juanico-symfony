@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Access denied | Juanico Hardware{% endblock %}
+
+{% block body %}
+    <div class="mx-auto max-w-xl py-14 text-center">
+        <p class="eyebrow">Error 403</p>
+        <h1 class="mt-2">You don't have access to this page</h1>
+        <p>Try another account, or head back to the shop.</p>
+        <div class="action-row mt-6 justify-center">
+            <a class="button-primary" href="{{ path('app_home') }}">Go home</a>
+        </div>
+    </div>
+{% endblock %}

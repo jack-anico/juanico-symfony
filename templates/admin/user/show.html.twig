@@ -7,14 +7,14 @@
 
     <p><a href="{{ path('app_admin_user_index') }}">Back to users</a></p>
 
-    <ul>
-        <li>Email: {{ user.email }}</li>
-        <li>Phone: {{ user.phone }}</li>
-        <li>Role: {{ 'ROLE_ADMIN' in user.roles ? 'Admin' : 'Customer' }}</li>
-        <li>Verified: {{ user.isVerified ? 'Yes' : 'No' }}</li>
-        <li>Active: {{ user.isActive ? 'Yes' : 'No' }}</li>
-        <li>Joined: {{ user.createdAt|date('Y-m-d H:i') }}</li>
-    </ul>
+    <dl class="detail-list panel max-w-xl">
+        <div><dt>Email</dt><dd>{{ user.email }}</dd></div>
+        <div><dt>Phone</dt><dd>{{ user.phone ?: 'Not provided' }}</dd></div>
+        <div><dt>Role</dt><dd>{{ 'ROLE_ADMIN' in user.roles ? 'Admin' : 'Customer' }}</dd></div>
+        <div><dt>Verified</dt><dd>{{ user.isVerified ? 'Yes' : 'No' }}</dd></div>
+        <div><dt>Active</dt><dd>{{ user.isActive ? 'Yes' : 'No' }}</dd></div>
+        <div><dt>Joined</dt><dd>{{ user.createdAt|date('Y-m-d H:i') }}</dd></div>
+    </dl>
 
     <form method="post" action="{{ path('app_admin_user_toggle_active', {id: user.id}) }}">
         <input type="hidden" name="_token" value="{{ csrf_token('toggle' ~ user.id) }}">

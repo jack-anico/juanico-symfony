@@ -1,30 +1,35 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}My Addresses{% endblock %}
+{% block title %}My Addresses | Juanico Hardware{% endblock %}
 
 {% block body %}
-    <h1>My Addresses</h1>
+    <div class="action-row mb-6 justify-between">
+        <h1 class="!mb-0">My Addresses</h1>
+        <a class="button-primary" href="{{ path('app_address_new') }}">Add a new address</a>
+    </div>
 
-    <p><a href="{{ path('app_address_new') }}">Add a new address</a></p>
-
-    <table>
-        <thead><tr><th>Label</th><th>Recipient</th><th>Address</th><th>Phone</th><th>Default</th><th></th></tr></thead>
-        <tbody>
+    {% if addresses %}
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {% for address in addresses %}
-                <tr>
-                    <td>{{ address.label }}</td>
-                    <td>{{ address.recipient }}</td>
-                    <td>{{ address.line1 }}, {{ address.city }}, {{ address.province }} {{ address.postalCode }}</td>
-                    <td>{{ address.phone }}</td>
-                    <td>{{ address.isDefault ? 'Yes' : 'No' }}</td>
-                    <td>
+                <section class="panel flex flex-col">
+                    <div class="action-row justify-between">
+                        <h2 class="!my-0 !text-base">{{ address.label }}</h2>
+                        {% if address.isDefault %}<span class="badge badge-green">Default</span>{% endif %}
+                    </div>
+                    <p class="!mb-1 mt-3 font-semibold text-navy-950">{{ address.recipient }}</p>
+                    <p class="!mb-1 text-sm">{{ address.line1 }}, {{ address.city }}, {{ address.province }} {{ address.postalCode }}</p>
+                    <p class="text-sm">{{ address.phone }}</p>
+                    <div class="mt-auto flex gap-4 pt-2 text-sm">
                         <a href="{{ path('app_address_show', {id: address.id}) }}">View</a>
                         <a href="{{ path('app_address_edit', {id: address.id}) }}">Edit</a>
-                    </td>
-                </tr>
-            {% else %}
-                <tr><td colspan="6">You have no saved addresses</td></tr>
+                    </div>
+                </section>
             {% endfor %}
-        </tbody>
-    </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3 class="!mt-0">You have no saved addresses</h3>
+            <p class="text-sm text-slate-500">Add one now to check out faster.</p>
+        </div>
+    {% endif %}
 {% endblock %}
