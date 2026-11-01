@@ -2,32 +2,24 @@
 
 namespace App\Form;
 
-use App\Entity\Product;
 use App\Entity\Review;
-use App\Entity\User;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class ReviewType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('rating')
-            ->add('comment')
-            ->add('isApproved')
-            ->add('createdAt', null, [
-                'widget' => 'single_text'
+            ->add('rating', ChoiceType::class, [
+                'choices' => ['5 stars' => 5, '4 stars' => 4, '3 stars' => 3, '2 stars' => 2, '1 star' => 1],
             ])
-            ->add('author', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => 'id',
-            ])
-            ->add('product', EntityType::class, [
-                'class' => Product::class,
-                'choice_label' => 'id',
+            ->add('comment', null, [
+                'empty_data' => '',
+                'constraints' => [new NotBlank(message: 'Please write a comment')],
             ])
         ;
     }

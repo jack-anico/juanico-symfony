@@ -2,7 +2,10 @@
 
 namespace App\Repository;
 
+use App\Entity\Order;
 use App\Entity\OrderItem;
+use App\Entity\Product;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +19,19 @@ class OrderItemRepository extends ServiceEntityRepository
         parent::__construct($registry, OrderItem::class);
     }
 
-//    /**
-//     * @return OrderItem[] Returns an array of OrderItem objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('o.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?OrderItem
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /** True when the user has received this product, which is what allows them to review it. */
+    public function hasReceived(User $user, Product $product): bool
+    {
+        return (int) $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->join('i.order', 'o')
+            ->andWhere('i.product = :product')
+            ->andWhere('o.customer = :user')
+            ->andWhere('o.status = :delivered')
+            ->setParameter('product', $product)
+            ->setParameter('user', $user)
+            ->setParameter('delivered', Order::STATUS_DELIVERED)
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
+    }
 }

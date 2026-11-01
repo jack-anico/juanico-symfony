@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Product;
 use App\Entity\Review;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -39,6 +40,11 @@ class ReviewRepository extends ServiceEntityRepository
             ->orderBy('r.createdAt', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    public function existsFor(User $user, Product $product): bool
+    {
+        return $this->count(['author' => $user, 'product' => $product]) > 0;
     }
 
     /** @return Review[] Published reviews, newest first */
