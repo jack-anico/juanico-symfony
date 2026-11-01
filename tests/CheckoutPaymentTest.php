@@ -7,7 +7,6 @@ use App\Entity\AuditLog;
 use App\Entity\Brand;
 use App\Entity\CartItem;
 use App\Entity\Category;
-use App\Entity\DeliveryZone;
 use App\Entity\DiscountCode;
 use App\Entity\Inquiry;
 use App\Entity\Order;
@@ -49,10 +48,9 @@ class CheckoutPaymentTest extends WebTestCase
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
         $this->purge();
 
-        foreach (['min_order_amount' => '500', 'free_shipping_threshold' => '5000', 'pending_order_escalation_hours' => '24', 'shop_open' => '1'] as $key => $value) {
+        foreach (['min_order_amount' => '500', 'shipping_fee' => '150', 'free_shipping_threshold' => '5000', 'pending_order_escalation_hours' => '24', 'shop_open' => '1'] as $key => $value) {
             $this->em->persist((new PlatformSetting())->setSettingKey($key)->setSettingValue($value));
         }
-        $this->em->persist((new DeliveryZone())->setName('Metro')->setProvinces(['Metro Manila', 'Cavite City'])->setShippingFee('150.00')->setIsActive(true));
 
         $this->customer = $this->user('customer@example.test');
         $this->admin = $this->user('admin@example.test', ['ROLE_ADMIN']);
@@ -114,7 +112,6 @@ class CheckoutPaymentTest extends WebTestCase
         $history = static::getContainer()->get(OrderRepository::class)->statusHistory($order);
         $this->assertCount(1, $history);
         $this->assertNull($history[0]->getFromStatus());
-        $this->assertStringContainsString('Metro', $history[0]->getNote(), 'The zone name is kept with the order');
         $this->assertSame(1, $this->em->getRepository(PaymentStatusHistory::class)->count([]));
     }
 
@@ -176,36 +173,30 @@ class CheckoutPaymentTest extends WebTestCase
 
     // ---- Rejections
 
-    public function testAddressOutsideEveryZoneIsRejected(): void
+    public function testAnyAddressIsAccepted(): void
     {
         $this->cart($this->product('Saw', price: '600.00'), 1);
-        $this->em->flush();
         $this->address->setProvince('Palawan')->setCity('Puerto Princesa');
         $this->em->flush();
         $this->client->loginUser($this->customer);
 
-        $this->assertStringContainsString('do not deliver', implode(' ', $this->preview()['messages']));
+        $this->assertSame([], $this->preview()['messages']);
+        $order = $this->checkout(Payment::METHOD_COD);
 
-        $this->submitCheckout(Payment::METHOD_COD);
-        $this->assertResponseStatusCodeSame(422);
-        $this->assertNoOrders();
+        $this->assertSame('150.00', $order->getShippingFee());
     }
 
-    public function testInactiveZoneIsRejectedAndCityCanMatch(): void
+    public function testShippingFeeComesFromSettings(): void
     {
         $this->cart($this->product('Saw', price: '600.00'), 1);
-        $this->address->setProvince('Cavite')->setCity('cavite city ');
         $this->em->flush();
+        $this->setting('shipping_fee', '99.50');
         $this->client->loginUser($this->customer);
 
-        $this->assertSame([], $this->preview()['messages'], 'City match is trimmed and case-insensitive');
+        $preview = $this->preview();
 
-        $this->em->getRepository(DeliveryZone::class)->findOneBy([])->setIsActive(false);
-        $this->em->flush();
-
-        $this->submitCheckout(Payment::METHOD_COD);
-        $this->assertResponseStatusCodeSame(422);
-        $this->assertNoOrders();
+        $this->assertSame('99.50', $preview['shippingFee']);
+        $this->assertSame('699.50', $preview['total']);
     }
 
     public function testBelowMinimumOrderIsRejected(): void
@@ -642,7 +633,7 @@ class CheckoutPaymentTest extends WebTestCase
         $this->em->flush();
         $this->client->loginUser($this->customer);
 
-        foreach (['/admin/payment', '/admin/audit/log', '/admin/platform/setting', '/admin/delivery/zone'] as $path) {
+        foreach (['/admin/payment', '/admin/audit/log', '/admin/platform/setting'] as $path) {
             $this->client->request('GET', $path);
             $this->assertResponseStatusCodeSame(403, $path);
         }
@@ -874,33 +865,6 @@ class CheckoutPaymentTest extends WebTestCase
         $this->assertResponseStatusCodeSame(404);
     }
 
-    public function testDeliveryZoneChangesAreAudited(): void
-    {
-        $zone = $this->em->getRepository(DeliveryZone::class)->findOneBy([]);
-        $this->client->loginUser($this->admin);
-
-        $this->client->request('GET', '/admin/delivery/zone/new');
-        $this->client->submitForm('Save', [
-            'delivery_zone[name]' => 'Visayas',
-            'delivery_zone[provinces]' => 'Cebu, Iloilo , ',
-            'delivery_zone[shippingFee]' => '300.00',
-            'delivery_zone[isActive]' => true,
-        ]);
-        $this->assertResponseRedirects('/admin/delivery/zone');
-        $this->assertAudited('zone_created');
-        $this->assertSame(['Cebu', 'Iloilo'], $this->em->getRepository(DeliveryZone::class)->findOneBy(['name' => 'Visayas'])->getProvinces());
-
-        $this->client->request('GET', '/admin/delivery/zone/'.$zone->getId().'/edit');
-        $this->client->submitForm('Update', ['delivery_zone[shippingFee]' => '175.00']);
-        $log = $this->assertAudited('zone_updated');
-        $this->assertSame('150.00', $log->getDetail()['fee_from']);
-        $this->assertEquals(175, $log->getDetail()['fee_to']);
-
-        $this->client->request('GET', '/admin/delivery/zone/'.$zone->getId());
-        $this->client->submitForm('Delete');
-        $this->assertAudited('zone_deleted');
-    }
-
     public function testAuditLogIsReadOnlyAndDisplays(): void
     {
         $this->em->persist((new AuditLog())->setAdmin($this->admin)->setAction('demo_action')->setEntityType('Payment')->setEntityId(1)->setCreatedAt(new \DateTimeImmutable()));
@@ -1047,7 +1011,7 @@ class CheckoutPaymentTest extends WebTestCase
             AuditLog::class, PaymentStatusHistory::class, Payment::class, OrderStatusHistory::class,
             OrderItem::class, Order::class, CartItem::class, WishlistItem::class, Review::class,
             StockMovement::class, Address::class, DiscountCode::class, Product::class, Brand::class,
-            Inquiry::class, DeliveryZone::class, PlatformSetting::class, User::class,
+            Inquiry::class, PlatformSetting::class, User::class,
         ] as $class) {
             $this->em->createQuery('DELETE FROM '.$class)->execute();
         }
