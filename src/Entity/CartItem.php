@@ -2,10 +2,12 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Repository\CartItemRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CartItemRepository::class)]
+#[ORM\UniqueConstraint(name: 'uniq_cart_owner_product', columns: ['owner_id', 'product_id'])]
 class CartItem
 {
     #[ORM\Id]
@@ -13,6 +15,7 @@ class CartItem
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\Positive]
     #[ORM\Column]
     private ?int $quantity = null;
 
@@ -29,6 +32,11 @@ class CartItem
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
+
+    public function getLineTotal(): string
+    {
+        return bcmul((string) $this->product?->getEffectivePrice(), (string) $this->quantity, 2);
+    }
 
     public function getId(): ?int
     {

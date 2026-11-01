@@ -2,11 +2,16 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
+#[UniqueEntity(fields: ['sku'], message: 'This SKU is already used.')]
+#[UniqueEntity(fields: ['slug'], message: 'This slug is already used.')]
+#[Assert\Expression('this.getSalePrice() === null or this.getSalePrice() < this.getPrice()', message: 'The sale price must be lower than the price.')]
 class Product
 {
     public const STATUS_ACTIVE = 'active';
@@ -18,39 +23,59 @@ class Product
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 150)]
     #[ORM\Column(length: 150)]
     private ?string $name = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
     #[ORM\Column(length: 50, unique: true)]
     private ?string $sku = null;
 
-    #[ORM\Column(length: 170)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 170)]
+    #[Assert\Regex(pattern: '/^[a-z0-9]+(-[a-z0-9]+)*$/', message: 'Use lowercase letters, numbers and hyphens.')]
+    #[ORM\Column(length: 170, unique: true)]
     private ?string $slug = null;
 
+    #[Assert\NotBlank]
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Positive]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $price = null;
 
+    #[Assert\NotBlank]
+    #[Assert\PositiveOrZero]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $costPrice = null;
 
+    #[Assert\Positive]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     private ?string $salePrice = null;
 
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 30)]
     #[ORM\Column(length: 30)]
     private ?string $unit = null;
 
+    #[Assert\NotNull]
+    #[Assert\PositiveOrZero]
     #[ORM\Column]
     private ?int $stock = null;
 
+    #[Assert\NotNull]
+    #[Assert\PositiveOrZero]
     #[ORM\Column]
     private ?int $lowStockThreshold = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
 
+    #[Assert\Choice(choices: [self::STATUS_ACTIVE, self::STATUS_DRAFT, self::STATUS_ARCHIVED])]
     #[ORM\Column(length: 20)]
     private ?string $status = null;
 

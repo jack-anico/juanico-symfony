@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Validator\Constraints as Assert;
 use App\Repository\OrderItemRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,9 +15,11 @@ class OrderItem
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\Positive]
     #[ORM\Column]
     private ?int $quantity = null;
 
+    #[Assert\PositiveOrZero]
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2)]
     private ?string $unitPrice = null;
 
@@ -27,6 +30,11 @@ class OrderItem
     #[ORM\ManyToOne(inversedBy: 'items')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Order $order = null;
+
+    public function getLineTotal(): string
+    {
+        return bcmul((string) $this->unitPrice, (string) $this->quantity, 2);
+    }
 
     public function getId(): ?int
     {

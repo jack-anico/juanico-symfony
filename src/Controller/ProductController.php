@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use App\Entity\Product;
 use App\Entity\Review;
 use App\Entity\User;
@@ -43,8 +44,14 @@ final class ProductController extends AbstractController
                 // Reviews stay hidden until an admin approves them.
                 $review->setAuthor($user)->setProduct($product)->setIsApproved(false)->setCreatedAt(new \DateTimeImmutable());
                 $entityManager->persist($review);
-                $entityManager->flush();
-                $this->addFlash('success', 'Thanks! Your review will appear once it is approved.');
+
+                try {
+                    $entityManager->flush();
+                    $this->addFlash('success', 'Thanks! Your review will appear once it is approved.');
+                } catch (UniqueConstraintViolationException) {
+                    // A double click; the first request already saved it.
+                }
+
 
                 return $this->redirectToRoute('app_product_show', ['slug' => $slug], Response::HTTP_SEE_OTHER);
             }
