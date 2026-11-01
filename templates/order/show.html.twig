@@ -10,7 +10,10 @@
     <ul>
         <li>Status: {{ order.status|capitalize }}</li>
         <li>Placed: {{ order.createdAt|date('Y-m-d H:i') }}</li>
-        <li>Payment: {{ order.paymentMethod|upper }} ({{ order.paymentStatus }})</li>
+        {% if order.payment %}
+            <li>Payment: {{ order.payment.method|upper }} ({{ order.payment.status }})</li>
+            {% if order.payment.reference %}<li>Payment reference: {{ order.payment.reference }}</li>{% endif %}
+        {% endif %}
         <li>Shipping: {{ order.shippingMethod|capitalize }}</li>
         {% if order.trackingNumber %}<li>Tracking number: {{ order.trackingNumber }}</li>{% endif %}
         {% if order.deliveredAt %}<li>Delivered: {{ order.deliveredAt|date('Y-m-d H:i') }}</li>{% endif %}
@@ -18,6 +21,14 @@
     </ul>
 
     {{ include('admin/order/invoice_lines.html.twig') }}
+
+    {% if proof_form %}
+        <h2>Your payment proof was not accepted</h2>
+        {{ form_start(proof_form) }}
+            {{ form_widget(proof_form) }}
+            <button>Upload new proof</button>
+        {{ form_end(proof_form) }}
+    {% endif %}
 
     {% if order.status == 'pending' %}
         <h2>Cancel this order</h2>
@@ -27,4 +38,11 @@
             <button>Cancel order</button>
         </form>
     {% endif %}
+
+    <h2>Order history</h2>
+    <ul>
+        {% for row in history %}
+            <li>{{ row.createdAt|date('Y-m-d H:i') }}: {{ row.toStatus|capitalize }}</li>
+        {% endfor %}
+    </ul>
 {% endblock %}
