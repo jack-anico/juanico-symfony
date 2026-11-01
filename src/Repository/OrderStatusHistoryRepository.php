@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Order;
 use App\Entity\OrderStatusHistory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,28 +17,9 @@ class OrderStatusHistoryRepository extends ServiceEntityRepository
         parent::__construct($registry, OrderStatusHistory::class);
     }
 
-//    /**
-//     * @return OrderStatusHistory[] Returns an array of OrderStatusHistory objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('o.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?OrderStatusHistory
-//    {
-//        return $this->createQueryBuilder('o')
-//            ->andWhere('o.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /** @return OrderStatusHistory[] Oldest first; id breaks ties between rows from the same second */
+    public function findForOrder(Order $order): array
+    {
+        return $this->findBy(['order' => $order], ['createdAt' => 'ASC', 'id' => 'ASC']);
+    }
 }

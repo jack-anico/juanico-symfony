@@ -19,20 +19,9 @@ class Order
     public const STATUS_DELIVERED = 'delivered';
     public const STATUS_CANCELLED = 'cancelled';
 
-    public const PAYMENT_UNPAID = 'unpaid';
-    public const PAYMENT_PAID = 'paid';
-    public const PAYMENT_REFUNDED = 'refunded';
-
-    public const PAYMENT_COD = 'cod';
-    public const PAYMENT_GCASH = 'gcash';
-    public const PAYMENT_BANK = 'bank';
-
-    /** Flat shipping fee in pesos for each shipping method. */
-    public const SHIPPING_FEES = [
-        'standard' => '100.00',
-        'express' => '250.00',
-        'pickup' => '0.00',
-    ];
+    public const SHIPPING_STANDARD = 'standard';
+    public const SHIPPING_EXPRESS = 'express';
+    public const SHIPPING_PICKUP = 'pickup';
 
     /** Allowed next statuses. Orders can only be cancelled before packing. */
     public const TRANSITIONS = [

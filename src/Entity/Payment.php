@@ -9,6 +9,24 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: PaymentRepository::class)]
 class Payment
 {
+    public const METHOD_COD = 'cod';
+    public const METHOD_GCASH = 'gcash';
+    public const METHOD_CARD = 'card';
+    public const METHOD_BANK = 'bank';
+
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_PAID = 'paid';
+    public const STATUS_FAILED = 'failed';
+    public const STATUS_REFUNDED = 'refunded';
+
+    /** Allowed next statuses. */
+    public const TRANSITIONS = [
+        self::STATUS_PENDING => [self::STATUS_PAID, self::STATUS_FAILED],
+        self::STATUS_PAID => [self::STATUS_REFUNDED],
+        self::STATUS_FAILED => [self::STATUS_PENDING],
+        self::STATUS_REFUNDED => [],
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Payment;
 use App\Entity\PaymentStatusHistory;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,28 +17,9 @@ class PaymentStatusHistoryRepository extends ServiceEntityRepository
         parent::__construct($registry, PaymentStatusHistory::class);
     }
 
-//    /**
-//     * @return PaymentStatusHistory[] Returns an array of PaymentStatusHistory objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('p.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?PaymentStatusHistory
-//    {
-//        return $this->createQueryBuilder('p')
-//            ->andWhere('p.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /** @return PaymentStatusHistory[] Oldest first; id breaks ties between rows from the same second */
+    public function findForPayment(Payment $payment): array
+    {
+        return $this->findBy(['payment' => $payment], ['createdAt' => 'ASC', 'id' => 'ASC']);
+    }
 }
