@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Address;
 use App\Entity\CartItem;
-use App\Entity\DeliveryZone;
 use App\Entity\DiscountCode;
 use App\Entity\Order;
 use App\Entity\OrderItem;
@@ -16,7 +15,6 @@ use App\EventSubscriber\OrderPlacedSubscriber;
 use App\Form\CheckoutType;
 use App\Repository\AddressRepository;
 use App\Repository\CartItemRepository;
-use App\Repository\DeliveryZoneRepository;
 use App\Repository\DiscountCodeRepository;
 use App\Repository\OrderRepository;
 use App\Repository\PlatformSettingRepository;
@@ -48,7 +46,6 @@ final class CheckoutController extends AbstractController
     public function __construct(
         private CartItemRepository $cartItems,
         private AddressRepository $addresses,
-        private DeliveryZoneRepository $zones,
         private DiscountCodeRepository $discountCodes,
         private PlatformSettingRepository $settings,
         private ProductRepository $products,
@@ -174,7 +171,7 @@ final class CheckoutController extends AbstractController
     }
 
     /**
-     * @return array{subtotal: string, shippingFee: string, discount: string, total: string, errors: list<string>, zone: ?DeliveryZone, voucher: ?DiscountCode}
+     * @return array{subtotal: string, shippingFee: string, discount: string, total: string, errors: list<string>, voucher: ?DiscountCode}
      */
     private function quote(User $user, ?Address $address, string $shippingMethod, ?string $voucherCode): array
     {
@@ -205,26 +202,17 @@ final class CheckoutController extends AbstractController
             $errors[] = sprintf('The minimum order is PHP %s.', $minimum);
         }
 
-        $zone = null;
         if (null === $address || $address->getOwner() !== $user) {
             $errors[] = 'Please choose one of your delivery addresses.';
-        } else {
-            $zone = $this->zones->findActiveForProvince((string) $address->getProvince(), $address->getCity());
-            if (null === $zone) {
-                $errors[] = 'Sorry, we do not deliver to that address yet.';
-            }
         }
 
         if (!in_array($shippingMethod, [Order::SHIPPING_STANDARD, Order::SHIPPING_EXPRESS, Order::SHIPPING_PICKUP], true)) {
             $errors[] = 'Please choose a shipping method.';
         }
 
-        $shippingFee = '0.00';
         $isFree = Order::SHIPPING_PICKUP === $shippingMethod
             || bccomp($subtotal, $this->settings->getDecimal('free_shipping_threshold'), 2) >= 0;
-        if (null !== $zone && !$isFree) {
-            $shippingFee = (string) $zone->getShippingFee();
-        }
+        $shippingFee = $isFree ? '0.00' : $this->settings->getDecimal('shipping_fee');
 
         $voucher = null;
         $discount = '0.00';
@@ -248,7 +236,6 @@ final class CheckoutController extends AbstractController
             'discount' => $discount,
             'total' => $total,
             'errors' => $errors,
-            'zone' => $zone,
             'voucher' => $voucher,
         ];
     }
@@ -293,7 +280,7 @@ final class CheckoutController extends AbstractController
                 ->setCustomer($user)
                 ->setShippingAddress($data['address'])
                 ->setDiscountCode($quote['voucher']);
-            $this->orderTransitions->start($order, $user, 'Delivery zone: '.$quote['zone']->getName());
+            $this->orderTransitions->start($order, $user);
             $this->entityManager->persist($order);
 
             foreach ($items as $item) {

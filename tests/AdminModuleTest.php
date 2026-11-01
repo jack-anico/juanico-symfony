@@ -6,7 +6,6 @@ use App\Entity\PlatformSetting;
 use App\Entity\PaymentStatusHistory;
 use App\Entity\Payment;
 use App\Entity\OrderStatusHistory;
-use App\Entity\DeliveryZone;
 use App\Entity\AuditLog;
 use App\Entity\Address;
 use App\Entity\Brand;
@@ -56,7 +55,7 @@ class AdminModuleTest extends WebTestCase
     public static function adminPages(): iterable
     {
         foreach (['/admin', '/admin/product', '/admin/product/new', '/admin/category', '/admin/category/new', '/admin/brand', '/admin/brand/new',
-            '/admin/discount/code', '/admin/discount/code/new', '/admin/order', '/admin/user', '/admin/review', '/admin/inquiry', '/admin/report', '/admin/payment', '/admin/delivery/zone', '/admin/delivery/zone/new', '/admin/platform/setting', '/admin/audit/log'] as $path) {
+            '/admin/discount/code', '/admin/discount/code/new', '/admin/order', '/admin/user', '/admin/review', '/admin/inquiry', '/admin/report', '/admin/payment', '/admin/platform/setting', '/admin/audit/log'] as $path) {
             yield $path => [$path];
         }
     }
@@ -422,7 +421,7 @@ class AdminModuleTest extends WebTestCase
             AuditLog::class, PaymentStatusHistory::class, Payment::class, OrderStatusHistory::class,
             OrderItem::class, Order::class, CartItem::class, WishlistItem::class, Review::class,
             StockMovement::class, Address::class, DiscountCode::class, Product::class, Brand::class,
-            Inquiry::class, DeliveryZone::class, PlatformSetting::class, User::class,
+            Inquiry::class, PlatformSetting::class, User::class,
         ] as $class) {
             $this->em->createQuery('DELETE FROM '.$class)->execute();
         }

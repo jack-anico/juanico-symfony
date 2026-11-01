@@ -6,7 +6,6 @@ use App\Entity\PlatformSetting;
 use App\Entity\PaymentStatusHistory;
 use App\Entity\Payment;
 use App\Entity\OrderStatusHistory;
-use App\Entity\DeliveryZone;
 use App\Entity\AuditLog;
 use App\Entity\Address;
 use App\Entity\Brand;
@@ -408,7 +407,7 @@ class ShopFlowTest extends WebTestCase
             AuditLog::class, PaymentStatusHistory::class, Payment::class, OrderStatusHistory::class,
             OrderItem::class, Order::class, CartItem::class, WishlistItem::class, Review::class,
             StockMovement::class, Address::class, DiscountCode::class, Product::class, Brand::class,
-            Inquiry::class, DeliveryZone::class, PlatformSetting::class, User::class,
+            Inquiry::class, PlatformSetting::class, User::class,
         ] as $class) {
             $this->em->createQuery('DELETE FROM '.$class)->execute();
         }
