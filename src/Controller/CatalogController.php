@@ -23,18 +23,24 @@ final class CatalogController extends AbstractController
         $filters = $form->isSubmitted() && $form->isValid() ? $form->getData() : [];
         $deals = $request->query->getBoolean('deals');
 
-        return $this->render('catalog/index.html.twig', [
-            'form' => $form,
-            'deals' => $deals,
-            'products' => $paginator->paginate($products->search(
-                $filters['q'] ?? null,
+        $q = trim((string) ($filters['q'] ?? ''));
+
+        $results = $paginator->paginate($products->search(
+                $q,
                 ($filters['category'] ?? null)?->getId(),
                 ($filters['brand'] ?? null)?->getId(),
                 $filters['minPrice'] ?? null,
                 $filters['maxPrice'] ?? null,
                 $filters['sort'] ?? null,
                 $deals,
-            ), max(1, $request->query->getInt('page', 1)), 20, ['wrap-queries' => true]),
+        ), max(1, $request->query->getInt('page', 1)), 20, ['wrap-queries' => true]);
+
+        return $this->render('catalog/index.html.twig', [
+            'form' => $form,
+            'deals' => $deals,
+            'q' => $q,
+            'correction' => '' !== $q && 0 === $results->getTotalItemCount() ? $products->correctSpelling($q) : null,
+            'products' => $results,
         ]);
     }
 }

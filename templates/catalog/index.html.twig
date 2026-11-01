@@ -1,10 +1,10 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ deals ? 'Deals' : 'Catalog' }} | Juanico Hardware{% endblock %}
+{% block title %}{{ q ? 'Search: ' ~ q : (deals ? 'Deals' : 'Catalog') }} | Juanico Hardware{% endblock %}
 
 {% block body %}
-    <p class="eyebrow">{{ deals ? 'On sale now' : 'Find your aisle' }}</p>
-    <h1 class="mt-2">{{ deals ? 'Deals' : 'Catalog' }}</h1>
+    <p class="eyebrow">{{ q ? 'Search results' : (deals ? 'On sale now' : 'Find your aisle') }}</p>
+    <h1 class="mt-2">{{ q ? 'Results for "' ~ q ~ '"' : (deals ? 'Deals' : 'Catalog') }}</h1>
 
     <div class="grid gap-8 lg:grid-cols-[17rem_minmax(0,1fr)]">
         <aside class="panel h-fit" id="filters">
@@ -25,7 +25,11 @@
                 <div class="empty-state">
                     <span class="flex justify-center text-slate-400">{{ include('_partials/icon.html.twig', {name: 'search', class: 'size-8'}) }}</span>
                     <h3>No tools found</h3>
-                    <p class="text-sm text-slate-500">No products match your search. Try a product type or brand.</p>
+                    {% if correction %}
+                        <p class="text-sm text-slate-500" data-did-you-mean>Did you mean <a href="{{ path('app_catalog', {q: correction}) }}">{{ correction }}</a>?</p>
+                    {% else %}
+                        <p class="text-sm text-slate-500">No products match your search. Try a product type or brand.</p>
+                    {% endif %}
                     <a class="font-bold text-navy-700" href="{{ path('app_catalog') }}">Clear search</a>
                 </div>
             {% endif %}
