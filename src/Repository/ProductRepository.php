@@ -170,6 +170,38 @@ class ProductRepository extends ServiceEntityRepository
         return number_format((float) $value, 2, '.', '');
     }
 
+    public function findActiveBySlug(string $slug): ?Product
+    {
+        return $this->findOneBy(['slug' => $slug, 'status' => Product::STATUS_ACTIVE]);
+    }
+
+    /**
+     * Removes stock in one atomic statement, so two buyers cannot both take the last unit.
+     *
+     * @return bool False when there is not enough stock; nothing changes in that case
+     */
+    public function decrementStock(Product $product, int $quantity): bool
+    {
+        return 1 === $this->getEntityManager()->createQuery(sprintf(
+            'UPDATE %s p SET p.stock = p.stock - :quantity WHERE p.id = :id AND p.stock >= :quantity',
+            Product::class,
+        ))
+            ->setParameter('quantity', $quantity)
+            ->setParameter('id', $product->getId())
+            ->execute();
+    }
+
+    public function incrementStock(Product $product, int $quantity): void
+    {
+        $this->getEntityManager()->createQuery(sprintf(
+            'UPDATE %s p SET p.stock = p.stock + :quantity WHERE p.id = :id',
+            Product::class,
+        ))
+            ->setParameter('quantity', $quantity)
+            ->setParameter('id', $product->getId())
+            ->execute();
+    }
+
     /**
      * Units and revenue per product from line items, excluding cancelled and refunded orders.
      *
