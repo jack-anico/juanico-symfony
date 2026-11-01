@@ -1,45 +1,31 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Inquiry index{% endblock %}
+{% block title %}Inquiries{% endblock %}
 
 {% block body %}
-    <h1>Inquiry index</h1>
+    <h1>Inquiries</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Subject</th>
-                <th>Message</th>
-                <th>Status</th>
-                <th>CreatedAt</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for inquiry in inquiries %}
-            <tr>
-                <td>{{ inquiry.id }}</td>
-                <td>{{ inquiry.name }}</td>
-                <td>{{ inquiry.email }}</td>
-                <td>{{ inquiry.subject }}</td>
-                <td>{{ inquiry.message }}</td>
-                <td>{{ inquiry.status }}</td>
-                <td>{{ inquiry.createdAt ? inquiry.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_admin_inquiry_show', {'id': inquiry.id}) }}">show</a>
-                    <a href="{{ path('app_admin_inquiry_edit', {'id': inquiry.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="8">no records found</td>
-            </tr>
+    <p>
+        <a href="{{ path('app_admin_dashboard') }}">Back to dashboard</a> |
+        <a href="{{ path('app_admin_inquiry_index') }}">All</a>
+        {% for status in statuses %}
+            | <a href="{{ path('app_admin_inquiry_index', {status: status}) }}">{{ status|capitalize }}</a>
         {% endfor %}
+    </p>
+
+    <table>
+        <thead><tr><th>Subject</th><th>From</th><th>Status</th><th>Received</th></tr></thead>
+        <tbody>
+            {% for inquiry in inquiries %}
+                <tr>
+                    <td><a href="{{ path('app_admin_inquiry_show', {id: inquiry.id}) }}">{{ inquiry.subject }}</a></td>
+                    <td>{{ inquiry.name }} ({{ inquiry.email }})</td>
+                    <td>{{ inquiry.status|capitalize }}</td>
+                    <td>{{ inquiry.createdAt|date('Y-m-d H:i') }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="4">No inquiries</td></tr>
+            {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('app_admin_inquiry_new') }}">Create new</a>
 {% endblock %}

@@ -41,6 +41,12 @@ class ReviewRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /** @return Review[] Published reviews, newest first */
+    public function findApproved(): array
+    {
+        return $this->findBy(['isApproved' => true], ['createdAt' => 'DESC']);
+    }
+
     /** @return float|null Average of approved ratings, or null with none */
     public function averageRating(Product $product): ?float
     {
