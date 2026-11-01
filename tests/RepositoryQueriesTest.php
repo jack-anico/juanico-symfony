@@ -2,6 +2,12 @@
 
 namespace App\Tests;
 
+use App\Entity\PlatformSetting;
+use App\Entity\PaymentStatusHistory;
+use App\Entity\Payment;
+use App\Entity\OrderStatusHistory;
+use App\Entity\DeliveryZone;
+use App\Entity\AuditLog;
 use App\Entity\Address;
 use App\Entity\Brand;
 use App\Entity\CartItem;
@@ -130,9 +136,10 @@ class RepositoryQueriesTest extends KernelTestCase
         $saw = $this->product('Saw', $child);
         $customer = $this->user('buyer@example.test');
 
-        $this->order($customer, '250.00', items: [[$saw, 2, '100.00']]);
+        $this->order($customer, '250.00', status: Order::STATUS_DELIVERED, payment: Payment::STATUS_PAID, items: [[$saw, 2, '100.00']]);
         $this->order($customer, '999.00', status: Order::STATUS_CANCELLED, items: [[$saw, 9, '111.00']]);
-        $this->order($customer, '999.00', payment: Order::PAYMENT_REFUNDED, items: [[$saw, 9, '111.00']]);
+        $this->order($customer, '999.00', status: Order::STATUS_DELIVERED, payment: Payment::STATUS_REFUNDED, items: [[$saw, 9, '111.00']]);
+        $this->order($customer, '999.00', status: Order::STATUS_SHIPPED, payment: Payment::STATUS_PAID, items: [[$saw, 9, '111.00']]);
         $this->em->flush();
 
         $repo = $this->em->getRepository(Category::class);
@@ -152,10 +159,10 @@ class RepositoryQueriesTest extends KernelTestCase
         $customer = $this->user('buyer@example.test');
         $now = new \DateTimeImmutable();
 
-        $this->order($customer, '100.00');
-        $this->order($customer, '300.00', status: Order::STATUS_DELIVERED, createdAt: $now->modify('-10 hours'), deliveredAt: $now);
-        $this->order($customer, '500.00', status: Order::STATUS_CANCELLED);
-        $this->order($customer, '700.00', payment: Order::PAYMENT_REFUNDED);
+        $this->order($customer, '100.00', status: Order::STATUS_DELIVERED, payment: Payment::STATUS_PAID);
+        $this->order($customer, '300.00', status: Order::STATUS_DELIVERED, payment: Payment::STATUS_PAID, createdAt: $now->modify('-10 hours'), deliveredAt: $now);
+        $this->order($customer, '500.00', status: Order::STATUS_CANCELLED, payment: Payment::STATUS_PAID);
+        $this->order($customer, '700.00');
         $this->order($customer, '900.00', createdAt: $now->modify('-40 days'));
         $this->em->flush();
 
@@ -169,7 +176,8 @@ class RepositoryQueriesTest extends KernelTestCase
         $this->assertSame('0.00', $repo->totalRevenueBetween($now->modify('-9 days'), $now->modify('-8 days')));
 
         $counts = $repo->countByStatus();
-        $this->assertSame(3, $counts[Order::STATUS_PENDING]);
+        $this->assertSame(2, $counts[Order::STATUS_PENDING]);
+        $this->assertSame(2, $counts[Order::STATUS_DELIVERED]);
         $this->assertSame(1, $counts[Order::STATUS_CANCELLED]);
         $this->assertEqualsWithDelta(0.2, $repo->cancellationRate(), 0.0001);
         $this->assertEqualsWithDelta(10.0, $repo->averageFulfillmentHours(), 0.05);
@@ -215,8 +223,8 @@ class RepositoryQueriesTest extends KernelTestCase
         $idle = $this->user('idle@example.test');
         $this->user('admin@example.test', ['ROLE_ADMIN']);
 
-        $this->order($repeat, '100.00');
-        $this->order($repeat, '200.00');
+        $this->order($repeat, '100.00', status: Order::STATUS_DELIVERED, payment: Payment::STATUS_PAID);
+        $this->order($repeat, '200.00', status: Order::STATUS_DELIVERED, payment: Payment::STATUS_PAID);
         $this->order($once, '50.00', createdAt: new \DateTimeImmutable('-90 days'));
         $this->em->flush();
 
@@ -319,9 +327,10 @@ class RepositoryQueriesTest extends KernelTestCase
     private function purge(): void
     {
         foreach ([
+            AuditLog::class, PaymentStatusHistory::class, Payment::class, OrderStatusHistory::class,
             OrderItem::class, Order::class, CartItem::class, WishlistItem::class, Review::class,
             StockMovement::class, Address::class, DiscountCode::class, Product::class, Brand::class,
-            Inquiry::class, User::class,
+            Inquiry::class, DeliveryZone::class, PlatformSetting::class, User::class,
         ] as $class) {
             $this->em->createQuery('DELETE FROM '.$class)->execute();
         }
@@ -385,7 +394,7 @@ class RepositoryQueriesTest extends KernelTestCase
         User $customer,
         string $total,
         string $status = Order::STATUS_PENDING,
-        string $payment = Order::PAYMENT_UNPAID,
+        string $payment = Payment::STATUS_PENDING,
         ?\DateTimeImmutable $createdAt = null,
         ?\DateTimeImmutable $deliveredAt = null,
         array $items = [],
@@ -395,11 +404,13 @@ class RepositoryQueriesTest extends KernelTestCase
             ->setProvince('P')->setPostalCode('1')->setIsDefault(false)->setOwner($customer);
         $this->em->persist($address);
 
-        $order = (new Order())->setOrderNumber('ORD-'.$id)->setStatus($status)->setPaymentMethod('cod')
-            ->setPaymentStatus($payment)->setShippingMethod('standard')->setSubtotal($total)->setShippingFee('0.00')
+        $order = (new Order())->setOrderNumber('ORD-'.$id)->setIdempotencyKey('key-'.$id)->setStatus($status)
+            ->setShippingMethod('standard')->setSubtotal($total)->setShippingFee('0.00')
             ->setDiscount('0.00')->setTotal($total)->setCreatedAt($createdAt ?? new \DateTimeImmutable())
             ->setDeliveredAt($deliveredAt)->setCustomer($customer)->setShippingAddress($address);
         $this->em->persist($order);
+        $this->em->persist((new Payment())->setOrder($order)->setMethod(Payment::METHOD_COD)->setStatus($payment)
+            ->setAmount($total)->setCreatedAt(new \DateTimeImmutable()));
 
         foreach ($items as $item) {
             $line = (new OrderItem())->setProduct($item[0])->setQuantity($item[1])->setUnitPrice($item[2] ?? '10.00');

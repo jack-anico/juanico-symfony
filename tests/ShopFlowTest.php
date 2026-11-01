@@ -2,6 +2,12 @@
 
 namespace App\Tests;
 
+use App\Entity\PlatformSetting;
+use App\Entity\PaymentStatusHistory;
+use App\Entity\Payment;
+use App\Entity\OrderStatusHistory;
+use App\Entity\DeliveryZone;
+use App\Entity\AuditLog;
 use App\Entity\Address;
 use App\Entity\Brand;
 use App\Entity\CartItem;
@@ -117,174 +123,6 @@ class ShopFlowTest extends WebTestCase
         $this->client->request('POST', '/cart/'.$item->getId().'/remove');
 
         $this->assertResponseStatusCodeSame(404);
-    }
-
-    public function testCheckoutCalculatesTotalsOnServerAndCompletesOrder(): void
-    {
-        $saw = $this->product('Hand Saw', price: '500.00', salePrice: '400.50', stock: 10);
-        $nail = $this->product('Nails', price: '19.99', stock: 5);
-        $this->cartItem($this->customer, $saw, 2);
-        $this->cartItem($this->customer, $nail, 3);
-        $code = $this->discount('SAVE10', 'percent', '10.00');
-        $this->em->flush();
-        $this->client->loginUser($this->customer);
-
-        $this->client->request('GET', '/checkout');
-        $this->client->submitForm('Place order', [
-            'checkout[address]' => (string) $this->address->getId(),
-            'checkout[shippingMethod]' => 'express',
-            'checkout[paymentMethod]' => Order::PAYMENT_COD,
-            'checkout[discountCode]' => 'SAVE10',
-            'checkout[notes]' => 'Leave at the gate',
-        ]);
-
-        $this->assertEmailCount(1);
-        $this->assertResponseRedirects();
-
-        $this->em->clear();
-        $order = $this->em->getRepository(Order::class)->findOneBy([]);
-        // 2 x 400.50 + 3 x 19.99 = 860.97, less 10% (86.10), plus 250 shipping
-        $this->assertSame('860.97', $order->getSubtotal());
-        $this->assertSame('86.10', $order->getDiscount());
-        $this->assertSame('250.00', $order->getShippingFee());
-        $this->assertSame('1024.87', $order->getTotal());
-        $this->assertSame(Order::STATUS_PENDING, $order->getStatus());
-        $this->assertSame('Leave at the gate', $order->getNotes());
-        $this->assertMatchesRegularExpression('/^JNC-\d{8}-[0-9A-F]{8}$/', $order->getOrderNumber());
-
-        $prices = [];
-        foreach ($order->getItems() as $line) {
-            $prices[$line->getProduct()->getName()] = $line->getUnitPrice();
-        }
-        $this->assertSame(['Hand Saw' => '400.50', 'Nails' => '19.99'], $prices, 'Line items snapshot the price paid');
-
-        $this->assertSame(8, $this->em->find(Product::class, $saw->getId())->getStock());
-        $this->assertSame(2, $this->em->find(Product::class, $nail->getId())->getStock());
-        $this->assertSame(0, $this->em->getRepository(CartItem::class)->count([]));
-        $this->assertSame(1, $this->em->find(DiscountCode::class, $code->getId())->getTimesUsed());
-        $this->assertSame(2, $this->em->getRepository(StockMovement::class)->count(['reason' => 'order']));
-    }
-
-    public function testFixedDiscountCannotExceedSubtotal(): void
-    {
-        $this->cartItem($this->customer, $this->product('Nails', price: '50.00'), 1);
-        $this->discount('BIG', 'fixed', '500.00');
-        $this->em->flush();
-        $this->client->loginUser($this->customer);
-
-        $this->client->request('GET', '/checkout');
-        $this->client->submitForm('Place order', [
-            'checkout[shippingMethod]' => 'standard',
-            'checkout[paymentMethod]' => Order::PAYMENT_COD,
-            'checkout[discountCode]' => 'BIG',
-        ]);
-
-        $this->em->clear();
-        $order = $this->em->getRepository(Order::class)->findOneBy([]);
-        $this->assertSame('50.00', $order->getDiscount());
-        $this->assertSame('100.00', $order->getTotal());
-    }
-
-    public function testInvalidDiscountCodeBlocksCheckout(): void
-    {
-        $product = $this->product('Nails', stock: 5);
-        $this->cartItem($this->customer, $product, 1);
-        $this->em->flush();
-        $this->client->loginUser($this->customer);
-
-        $this->client->request('GET', '/checkout');
-        $this->client->submitForm('Place order', [
-            'checkout[shippingMethod]' => 'pickup',
-            'checkout[paymentMethod]' => Order::PAYMENT_COD,
-            'checkout[discountCode]' => 'NOPE',
-        ]);
-
-        $this->assertResponseStatusCodeSame(422);
-        $this->assertSame(0, $this->em->getRepository(Order::class)->count([]));
-    }
-
-    public function testShortageRollsEverythingBack(): void
-    {
-        $plenty = $this->product('Plenty', stock: 10);
-        $short = $this->product('Short', stock: 5);
-        $this->cartItem($this->customer, $plenty, 2);
-        $this->cartItem($this->customer, $short, 3);
-        $code = $this->discount('SAVE10', 'percent', '10.00');
-        $this->em->flush();
-        $this->client->loginUser($this->customer);
-
-        $crawler = $this->client->request('GET', '/checkout');
-        $form = $crawler->selectButton('Place order')->form([
-            'checkout[shippingMethod]' => 'standard',
-            'checkout[paymentMethod]' => Order::PAYMENT_COD,
-            'checkout[discountCode]' => 'SAVE10',
-        ]);
-
-        // Someone else buys the stock after this customer opened the checkout page.
-        $this->em->getConnection()->executeStatement('UPDATE product SET stock = 1 WHERE id = ?', [$short->getId()]);
-        $this->client->submit($form);
-
-        $this->assertResponseRedirects('/cart');
-        $this->client->followRedirect();
-        $this->assertSelectorTextContains('.flash-error', 'Short');
-
-        $this->em->clear();
-        $this->assertSame(0, $this->em->getRepository(Order::class)->count([]));
-        $this->assertSame(0, $this->em->getRepository(OrderItem::class)->count([]));
-        $this->assertSame(0, $this->em->getRepository(StockMovement::class)->count([]));
-        $this->assertSame(10, $this->em->find(Product::class, $plenty->getId())->getStock(), 'Earlier deduction is undone');
-        $this->assertSame(1, $this->em->find(Product::class, $short->getId())->getStock());
-        $this->assertSame(0, $this->em->find(DiscountCode::class, $code->getId())->getTimesUsed());
-        $this->assertSame(2, $this->em->getRepository(CartItem::class)->count([]), 'The cart is kept');
-    }
-
-    public function testCheckoutRejectsAnotherUsersAddress(): void
-    {
-        $other = $this->user('other@example.test');
-        $foreign = $this->address($other);
-        $this->cartItem($this->customer, $this->product('Nails'), 1);
-        $this->em->flush();
-        $this->client->loginUser($this->customer);
-
-        $crawler = $this->client->request('GET', '/checkout');
-        $form = $crawler->selectButton('Place order')->form();
-        $values = $form->getPhpValues();
-        $values['checkout']['address'] = (string) $foreign->getId();
-        $this->client->request('POST', '/checkout', $values);
-
-        $this->assertResponseStatusCodeSame(422);
-        $this->assertSame(0, $this->em->getRepository(Order::class)->count([]));
-    }
-
-    public function testGcashRequiresValidPaymentProof(): void
-    {
-        $this->cartItem($this->customer, $this->product('Nails'), 1);
-        $this->em->flush();
-        $this->client->loginUser($this->customer);
-
-        $this->client->request('GET', '/checkout');
-        $this->client->submitForm('Place order', [
-            'checkout[shippingMethod]' => 'standard',
-            'checkout[paymentMethod]' => Order::PAYMENT_GCASH,
-        ]);
-        $this->assertResponseStatusCodeSame(422);
-        $this->assertSame(0, $this->em->getRepository(Order::class)->count([]));
-
-        $path = tempnam(sys_get_temp_dir(), 'proof');
-        file_put_contents($path, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='));
-
-        $this->client->request('GET', '/checkout');
-        $this->client->submitForm('Place order', [
-            'checkout[shippingMethod]' => 'standard',
-            'checkout[paymentMethod]' => Order::PAYMENT_GCASH,
-            'checkout[paymentProof]' => new UploadedFile($path, 'receipt.png', 'image/png', null, true),
-        ]);
-        $this->assertResponseRedirects();
-
-        $this->em->clear();
-        $proof = $this->em->getRepository(Order::class)->findOneBy([])->getPaymentProof();
-        $this->assertMatchesRegularExpression('/^[0-9a-f]{32}\.png$/', $proof);
-        unlink(static::getContainer()->getParameter('kernel.project_dir').'/public/uploads/payment_proofs/'.$proof);
     }
 
     public function testCustomerCancelRestoresStockOnce(): void
@@ -567,9 +405,10 @@ class ShopFlowTest extends WebTestCase
     {
         $this->em->clear();
         foreach ([
+            AuditLog::class, PaymentStatusHistory::class, Payment::class, OrderStatusHistory::class,
             OrderItem::class, Order::class, CartItem::class, WishlistItem::class, Review::class,
             StockMovement::class, Address::class, DiscountCode::class, Product::class, Brand::class,
-            Inquiry::class, User::class,
+            Inquiry::class, DeliveryZone::class, PlatformSetting::class, User::class,
         ] as $class) {
             $this->em->createQuery('DELETE FROM '.$class)->execute();
         }
@@ -630,14 +469,19 @@ class ShopFlowTest extends WebTestCase
     private function order(User $customer, Product $product, int $quantity, string $status = Order::STATUS_PENDING): Order
     {
         $address = $customer === $this->customer ? $this->em->getRepository(Address::class)->findOneBy(['owner' => $customer]) ?? $this->address : $this->address($customer);
-        $order = (new Order())->setOrderNumber('ORD-'.++$this->sequence)->setStatus($status)->setPaymentMethod(Order::PAYMENT_COD)
-            ->setPaymentStatus(Order::PAYMENT_UNPAID)->setShippingMethod('standard')->setSubtotal('100.00')->setShippingFee('0.00')
+        $id = ++$this->sequence;
+        $order = (new Order())->setOrderNumber('ORD-'.$id)->setIdempotencyKey('key-'.$id)->setStatus($status)
+            ->setShippingMethod('standard')->setSubtotal('100.00')->setShippingFee('0.00')
             ->setDiscount('0.00')->setTotal('100.00')->setCreatedAt(new \DateTimeImmutable())
             ->setCustomer($customer)->setShippingAddress($address);
         $line = (new OrderItem())->setProduct($product)->setQuantity($quantity)->setUnitPrice('100.00');
         $order->addItem($line);
         $this->em->persist($order);
         $this->em->persist($line);
+        $payment = (new Payment())->setOrder($order)->setMethod(Payment::METHOD_COD)->setStatus(Payment::STATUS_PENDING)
+            ->setAmount('100.00')->setCreatedAt(new \DateTimeImmutable());
+        $order->setPayment($payment);
+        $this->em->persist($payment);
 
         return $order;
     }

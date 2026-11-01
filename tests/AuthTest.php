@@ -2,6 +2,7 @@
 
 namespace App\Tests;
 
+use App\Entity\PlatformSetting;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,6 +20,9 @@ class AuthTest extends WebTestCase
     {
         $this->client = static::createClient();
         $this->entityManager()->createQuery('DELETE FROM '.User::class)->execute();
+        $this->entityManager()->createQuery('DELETE FROM '.PlatformSetting::class)->execute();
+        $this->entityManager()->persist((new PlatformSetting())->setSettingKey('pending_order_escalation_hours')->setSettingValue('24'));
+        $this->entityManager()->flush();
     }
 
     public function testRegistrationCreatesActiveUnverifiedCustomerAndSendsEmail(): void
