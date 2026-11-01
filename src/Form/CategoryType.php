@@ -3,6 +3,8 @@
 namespace App\Form;
 
 use App\Entity\Category;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -12,6 +14,8 @@ class CategoryType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $currentId = ($options['data'] ?? null)?->getId();
+
         $builder
             ->add('name')
             ->add('slug')
@@ -21,7 +25,18 @@ class CategoryType extends AbstractType
             ->add('isActive')
             ->add('parent', EntityType::class, [
                 'class' => Category::class,
-                'choice_label' => 'id',
+                'choice_label' => 'name',
+                'required' => false,
+                'placeholder' => 'None (top level)',
+                // A category cannot be its own parent.
+                'query_builder' => static function (EntityRepository $repository) use ($currentId): QueryBuilder {
+                    $qb = $repository->createQueryBuilder('c')->orderBy('c.name', 'ASC');
+                    if (null !== $currentId) {
+                        $qb->andWhere('c.id <> :current')->setParameter('current', $currentId);
+                    }
+
+                    return $qb;
+                },
             ])
         ;
     }

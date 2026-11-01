@@ -30,6 +30,7 @@ final class DiscountCodeController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $discountCode->setTimesUsed(0);
             $entityManager->persist($discountCode);
             $entityManager->flush();
 
@@ -72,8 +73,12 @@ final class DiscountCodeController extends AbstractController
     public function delete(Request $request, DiscountCode $discountCode, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$discountCode->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($discountCode);
-            $entityManager->flush();
+            try {
+                $entityManager->remove($discountCode);
+                $entityManager->flush();
+            } catch (\Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException) {
+                $this->addFlash('error', 'This code has been used on orders. Deactivate it instead.');
+            }
         }
 
         return $this->redirectToRoute('app_admin_discount_code_index', [], Response::HTTP_SEE_OTHER);

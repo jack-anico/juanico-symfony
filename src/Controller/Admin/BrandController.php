@@ -72,8 +72,12 @@ final class BrandController extends AbstractController
     public function delete(Request $request, Brand $brand, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$brand->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($brand);
-            $entityManager->flush();
+            try {
+                $entityManager->remove($brand);
+                $entityManager->flush();
+            } catch (\Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException) {
+                $this->addFlash('error', 'This brand still has products. Deactivate it instead.');
+            }
         }
 
         return $this->redirectToRoute('app_admin_brand_index', [], Response::HTTP_SEE_OTHER);

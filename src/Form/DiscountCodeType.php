@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\DiscountCode;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -13,11 +14,12 @@ class DiscountCodeType extends AbstractType
     {
         $builder
             ->add('code')
-            ->add('type')
+            ->add('type', ChoiceType::class, [
+                'choices' => ['Percent' => 'percent', 'Fixed amount' => 'fixed'],
+            ])
             ->add('value')
             ->add('minSpend')
             ->add('usageLimit')
-            ->add('timesUsed')
             ->add('expiresAt', null, [
                 'widget' => 'single_text'
             ])
