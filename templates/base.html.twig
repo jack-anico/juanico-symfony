@@ -63,7 +63,8 @@
                             </div>
                         </details>
                     {% else %}
-                        <a class="icon-btn hidden sm:grid" aria-label="Log in" href="{{ path('app_login') }}">{{ include('_partials/icon.html.twig', {name: 'user'}) }}</a>
+                        <a class="hidden whitespace-nowrap rounded-lg px-3 py-2 text-sm font-bold text-navy-900 hover:bg-navy-50 sm:block" href="{{ path('app_login') }}">Log in</a>
+                        <a class="hidden whitespace-nowrap rounded-lg bg-navy-800 px-4 py-2 text-sm font-bold text-white hover:bg-navy-700 sm:block" href="{{ path('app_register') }}">Register</a>
                     {% endif %}
                     <a class="icon-btn hidden sm:grid" aria-label="Wishlist" href="{{ path('app_wishlist') }}">{{ include('_partials/icon.html.twig', {name: 'heart'}) }}</a>
                     {% set cart_items = cart_count() %}
@@ -80,6 +81,12 @@
                 </label>
                 <div id="search-list-mobile" role="listbox" aria-label="Search suggestions" class="search-panel inset-x-3 hidden" data-search-suggest-target="panel"></div>
             </form>
+            {% if not app.user %}
+                <div class="flex justify-center gap-2 border-t border-slate-100 p-2 sm:hidden">
+                    <a class="rounded-lg px-4 py-2 text-sm font-bold text-navy-900 hover:bg-navy-50" href="{{ path('app_login') }}">Log in</a>
+                    <a class="rounded-lg bg-navy-800 px-4 py-2 text-sm font-bold text-white hover:bg-navy-700" href="{{ path('app_register') }}">Register</a>
+                </div>
+            {% endif %}
         </header>
 
         <main id="top" class="flex-1">

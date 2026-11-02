@@ -40,6 +40,8 @@ class AuthTest extends WebTestCase
 
         $this->assertEmailCount(1);
         $this->assertResponseRedirects('/login');
+        $this->client->followRedirect();
+        $this->assertSelectorTextContains('.flash-success', 'Account created');
 
         $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'juan@example.test']);
         $this->assertNotNull($user);

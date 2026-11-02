@@ -61,6 +61,14 @@ class FrontendTest extends WebTestCase
         $this->assertCount(0, $crawler->filter('article form'));
     }
 
+    public function testGuestHeaderOffersLogInAndRegister(): void
+    {
+        $crawler = $this->client->request('GET', '/');
+
+        $this->assertGreaterThan(0, $crawler->filter('header a[href="/login"]')->count());
+        $this->assertGreaterThan(0, $crawler->filter('header a[href="/register"]')->count());
+    }
+
     public function testDealsShowOnlySaleProducts(): void
     {
         $category = $this->category('Saws', 'saws');
@@ -86,6 +94,7 @@ class FrontendTest extends WebTestCase
 
         $crawler = $this->client->request('GET', '/');
 
+        $this->assertCount(0, $crawler->filter('header a[href="/register"]'));
         $this->assertSame('Cart with 1 items', $crawler->filter('header a[href="/cart"]')->attr('aria-label'));
         $this->assertCount(1, $crawler->filter('article form[action*="/cart/add/"]'), 'No featured products would mean no card');
     }
